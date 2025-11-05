@@ -1,0 +1,2 @@
+GRANT ALL PRIVILEGES ON connectify.* TO 'swayam'@'%';
+FLUSH PRIVILEGES;

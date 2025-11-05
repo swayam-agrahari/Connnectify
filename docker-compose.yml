@@ -1,0 +1,22 @@
+services:
+  db:
+    image: postgres:latest
+    container_name: db
+    restart: always
+    environment:
+      POSTGRES_USER: swayam
+      POSTGRES_PASSWORD: swayam89
+      POSTGRES_DB: connectify
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: "pg_isready -U swayam -d connectify"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+volumes:
+  postgres_data:
