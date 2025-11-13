@@ -25,13 +25,16 @@ export default function LoginPage() {
 
         startTransition(async () => {
             const result = await loginAction(formdata);
+            console.log("in jhere", result)
             if (result?.errors) {
                 if ('message' in result.errors) {
-                    setErrors({ general: result.errors.message });
+                    setErrors({ error: result.errors.message });
                 } else {
                     setErrors(result.errors);
                 }
+                console.log(errors);
             }
+
         });
     }
 
@@ -108,9 +111,9 @@ export default function LoginPage() {
                         >
                             Sign in
                         </GlassButton>
-                        {errors.code && (
+                        {errors.error && (
                             <p className="text-sm text-red-600 dark:text-red-400 text-center">
-                                {errors.code}
+                                {errors.error}
                             </p>
                         )}
 
