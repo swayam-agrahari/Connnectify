@@ -7,22 +7,25 @@ dotenv.config();
 export interface AuthenticatedRequest extends Request {
     user?: {
         userId: string;
+        uid: string;
         email?: string | undefined;
     };
 }
 
-export const authMiddleware = (
+export const communityMiddleware = (
     req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
 ): void => {
     try {
-        console.log("Auth middleware: accessing cookies:", req.cookies);
-        const token = req.cookies?.session;
-        console.log("Auth middleware: token from cookie:", token);
+
+        const token = req.cookies?.session; // not session.token
+        const uid = req.cookies?.uid;
+
+
+
 
         if (!token) {
-            console.warn("Auth middleware: missing JWT cookie.");
             res.status(401).json({ error: "Authentication token missing" });
             return;
         }
@@ -37,7 +40,9 @@ export const authMiddleware = (
         req.user = {
             userId: decoded.userId,
             email: decoded.email,
+            uid: uid,
         };
+
 
         next();
     } catch (err: any) {

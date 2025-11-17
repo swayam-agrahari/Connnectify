@@ -1,4 +1,4 @@
-import { z as zod } from "zod";
+import { z } from "zod";
 
 export enum PostType {
     TEXT = "TEXT",
@@ -6,35 +6,44 @@ export enum PostType {
     POLL = "POLL",
 }
 
-const pollOptionSchema = zod.object({
-    text: zod.string().min(1),
+const pollSchema = z.object({
+    options: z.array(z.string()).min(2, "A poll must have at least 2 options."),
+    duration: z.number().positive("Duration must be a positive number."),
 });
 
-export const createPostSchema = zod
-    .object({
-        content: zod.string().min(1),
-        type: zod.enum([PostType.TEXT, PostType.IMAGE, PostType.POLL]),
-        imageUrl: zod.string().url().optional(),
-        communityId: zod.string().cuid().optional(),
-        pollOptions: zod.array(pollOptionSchema).optional(),
-    })
-    .superRefine((data, ctx) => {
-        if (data.type === PostType.POLL) {
-            if (!data.pollOptions || data.pollOptions.length < 2) {
-                ctx.addIssue({
-                    code: zod.ZodIssueCode.custom,
-                    message: "A poll must have at least 2 options.",
-                    path: ["pollOptions"],
-                });
-            }
-        } else {
-            // If it's not a POLL, make sure pollOptions is NOT sent
-            if (data.pollOptions) {
-                ctx.addIssue({
-                    code: zod.ZodIssueCode.custom,
-                    message: "Only poll posts can include poll options.",
-                    path: ["pollOptions"],
-                });
-            }
+export const createPostSchema = z.object({
+    content: z.string().min(1, "Content cannot be empty"),
+    type: z.enum(['TEXT', 'IMAGE', 'POLL']),
+    communityId: z.string(),
+    imageUrl: z.string().url().optional(),
+    poll: pollSchema.optional(),
+}).superRefine((data, ctx) => {
+    if (data.type === 'POLL') {
+        if (!data.poll) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Poll posts must include poll data.",
+                path: ["poll"],
+            });
         }
-    });
+    } else {
+        // Non-poll posts should NOT include poll
+        if (data.poll) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Only poll posts can include poll data.",
+                path: ["poll"],
+            });
+        }
+    }
+});
+
+
+export const voteSchema = z.object({
+    voteType: z.enum(["UPVOTE", "DOWNVOTE"]),
+});
+
+export const createCommentSchema = z.object({
+    text: z.string().min(1, "Comment cannot be empty"),
+    parentId: z.string().cuid().optional().nullable(),
+});

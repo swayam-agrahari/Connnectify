@@ -17,8 +17,8 @@ app.use(cors({
   credentials: true, // This is the crucial part
 }));
 
-app.use(express.json())
 app.use(cookieParser());
+app.use(express.json())
 
 app.use("/api/community", communityRouter)
 app.use("/api/university", universityRouter)

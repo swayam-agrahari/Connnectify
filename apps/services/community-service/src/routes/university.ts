@@ -1,9 +1,8 @@
 import express, { type Request, type Response } from "express";
 import prisma from "@/prisma/index.js";
-import { authMiddleware, type AuthenticatedRequest } from "@/utils/authMiddleware";
+
 
 export const universityRouter = express.Router();
-
 
 //get all communities for a university
 universityRouter.get("/:universityId/communities", async (req: Request, res: Response) => {
@@ -20,7 +19,7 @@ universityRouter.get("/:universityId/communities", async (req: Request, res: Res
             include: {
                 university: {
                     select: {
-                        id: true, 
+                        id: true,
                         name: true,
                         emailDomain: true,
                         logoImageUrl: true

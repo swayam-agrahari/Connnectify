@@ -97,6 +97,7 @@ authRouter.post("/register", async (req, res) => {
             message: "User registered successfully",
             userId: user.id,
             token: token,
+            uid: user.universityId
         })
     } catch (error) {
         console.log("Error registering user:", error);
@@ -169,6 +170,7 @@ authRouter.post("/login", async (req, res) => {
             message: "Login successful",
             userId: user.id,
             token: token,
+            uid: user.universityId
         });
     } catch (error) {
         return res.status(500).json({
@@ -210,9 +212,12 @@ authRouter.post('/verify', authMiddleware, async (req: AuthenticatedRequest, res
 
 
 authRouter.post('/me', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
-    const userId = req.user!.userId;
-    
-    try {   
+    const userId = req.body.userId || req.user?.userId;
+    if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    try {
         const user = await prisma.users.findUnique({
             where: { id: userId },
             select: {
@@ -233,4 +238,124 @@ authRouter.post('/me', authMiddleware, async (req: AuthenticatedRequest, res: Re
     } catch (error) {
         return res.status(500).json({ error: "Internal server error" });
     }
+});
+
+
+authRouter.post("/bulk", async (req, res) => {
+    console.log("callled here")
+    const { ids } = req.body; // Expects { ids: ["user1", "user2"] }
+
+    console.log("Bulk user fetch for IDs:", ids);
+    const users = await prisma.users.findMany({
+        where: { id: { in: ids } },
+        select: { id: true, username: true, profileImageUrl: true, name: true } // Only public info
+    });
+
+    res.json({ users });
+});
+
+
+authRouter.get("/test", (req, res) => {
+    res.json({ message: "User service test endpoint working!" });
+});
+
+authRouter.get("/details", authMiddleware, async (req: AuthenticatedRequest, res) => {
+    const userId = req.user?.userId;
+    if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    try {
+        const data = await prisma.users.findUnique({
+            where: {
+                id: userId
+            }
+        })
+
+        if (!data) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        return res.status(200).json({ user: data });
+    } catch (error) {
+        console.log("error getting user", error)
+        return res.status(403).json({
+            "error": error
+        })
+    }
+})
+
+
+authRouter.post("/details", authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+
+    try {
+        const userId = req.user?.userId
+        if (!userId) {
+            return res.status(401).json({ error: "Unauthorized" });
+        }
+
+        const { name, profileImageUrl } = req.body;
+        const updatedUser = await prisma.users.update({
+            where: {
+                id: userId
+            },
+            data: {
+                name: name,
+                profileImageUrl: profileImageUrl
+            }
+        })
+
+    } catch (error) {
+        console.log("error updating user details", error);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+})
+
+
+//find user by id
+authRouter.get("/:userId", async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const { userId } = req.params;
+        console.log("Fetching user for userId:", userId);
+        if (!userId) {
+            return res.status(400).json({ error: "User ID not provided" });
+        }
+
+        const user = await prisma.users.findUnique({
+            where: {
+                id: userId
+            },
+            select: {
+                id: true,
+                username: true,
+                profileImageUrl: true,
+                name: true,
+                universityId: true
+            }
+        })
+
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        return res.status(200).json({ user });
+    } catch (error) {
+        console.log("error fetching user by id", error);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+
+
+authRouter.post('/logout', (req, res) => {
+    console.log("Logout request received");
+    // Clear the cookie (name must match what you set when logging in)
+    res.clearCookie('token', {
+        httpOnly: true,
+        secure: false,   // set true if using HTTPS in production
+        sameSite: 'lax',
+        path: '/',
+    });
+
+    return res.status(200).json({ message: 'Logged out successfully' });
 });

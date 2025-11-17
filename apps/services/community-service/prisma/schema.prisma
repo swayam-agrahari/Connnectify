@@ -29,10 +29,10 @@ model University {
 
 model Community {
   id            String   @id @default(cuid())
-  name          String  
-  displayName   String   
+  name          String    
   description   String?
 
+  creator       String   @default("")  
   university    University @relation(fields: [universityId], references: [id])
   universityId  String     
   

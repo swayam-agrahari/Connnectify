@@ -1,6 +1,6 @@
 import express, { type Request, type Response } from 'express';
 import prisma from "@/prisma/index.js";
-import { createPostSchema } from '@/utils/schema';
+import { createCommentSchema, createPostSchema, voteSchema } from '@/utils/schema';
 import { authMiddleware, type AuthenticatedRequest } from '@/utils/authMiddleware';
 
 export const postRouter = express.Router();
@@ -14,7 +14,13 @@ postRouter.get("/", authMiddleware, async (req: AuthenticatedRequest, res: Respo
         if (!userId) {
             return res.status(401).json({ error: "User not authenticated" });
         }
-        const posts = await prisma.post.findMany({})
+        const posts = await prisma.post.findMany({
+            orderBy: { createdAt: 'desc' },
+            include: {
+                pollOptions: true, votes: true, comments: true,
+
+            }
+        });
 
         res.status(200).json({ posts });
     }
@@ -25,23 +31,59 @@ postRouter.get("/", authMiddleware, async (req: AuthenticatedRequest, res: Respo
 });
 
 //get all posts for a community
-postRouter.get("/community/:communityId", authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+postRouter.get("/:communityId/posts/community", authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
     try {
         const { communityId } = req.params;
 
         if (!communityId) {
-            return res.status(401).json({ error: "Community ID not provided" });
+            return res.status(401).json({ error: "Community id not provided" });
         }
 
         const posts = await prisma.post.findMany({
             where: {
                 communityId: communityId
+            },
+            orderBy: { createdAt: 'desc' },
+            include: {
+                pollOptions: true,
+                _count:true,
+                votes:true,
+                comments:true,
+
             }
         })
 
         res.status(200).json({ posts });
     } catch (error) {
         console.error("Error fetching posts:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+//get a post by id
+postRouter.get("/:postId", async (req: Request, res: Response) => {
+    try {
+        const { postId } = req.params;
+        console.log("Fetching post for postId:", postId);
+
+        if (!postId) {
+            return res.status(400).json({ error: "Post ID not provided" });
+        }
+
+        const post = await prisma.post.findUnique({
+            where: { id: postId },
+            include: {
+                pollOptions: true,
+            }
+        });
+
+        if (!post) {
+            return res.status(404).json({ error: "Post not found" });
+        }
+
+        res.status(200).json({ post });
+    } catch (error) {
+        console.error("Error fetching post:", error);
         res.status(500).json({ error: "Internal server error" });
     }
 });
@@ -65,6 +107,8 @@ postRouter.post("/", authMiddleware, async (req: AuthenticatedRequest, res: Resp
             return res.status(400).json({ error: "Invalid post data", details: parsedResponse.error });
         }
 
+
+
         const data = await prisma.post.create({
             data: {
                 content: parsedResponse.data.content,
@@ -76,9 +120,9 @@ postRouter.post("/", authMiddleware, async (req: AuthenticatedRequest, res: Resp
             },
 
         });
-        if (parsedResponse.data.pollOptions && parsedResponse.data.type === 'POLL') {
+        if (parsedResponse.data.poll?.options && parsedResponse.data.type === 'POLL') {
             console.log("Creating poll options");
-            for (const option of parsedResponse.data.pollOptions) {
+            for (const option of parsedResponse.data.poll.options.map((text) => ({ text }))) {
                 await prisma.pollOption.create({
                     data: {
                         text: option.text,
@@ -93,5 +137,145 @@ postRouter.post("/", authMiddleware, async (req: AuthenticatedRequest, res: Resp
     } catch (error) {
         console.error("Error creating post:", error);
         res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+
+//like a post
+postRouter.post("/:postId/vote", authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+
+    try {
+        const userId = req.user?.userId;
+        const { postId } = req.params;
+
+        const { voteType } = voteSchema.parse(req.body);
+
+
+        if (!userId) {
+            return res.status(401).json({ error: "User not authenticated" });
+        }
+        if (!postId) {
+            return res.status(400).json({ error: "Post ID not provided" });
+        }
+
+        // Find existing vote
+        const existingVote = await prisma.vote.findUnique({
+            where: {
+                userId_postId: { userId, postId },
+            },
+        });
+
+        // CASE A — Existing vote found
+        if (existingVote) {
+            // A1 — Same vote: user toggles off → delete
+            if (existingVote.type === voteType) {
+                await prisma.vote.delete({
+                    where: { userId_postId: { userId, postId } },
+                });
+
+                return res.json({ message: "Vote removed" });
+            }
+
+            // A2 — Different vote: update
+            const updated = await prisma.vote.update({
+                where: { userId_postId: { userId, postId } },
+                data: { type: voteType },
+            });
+
+            return res.json({ message: "Vote updated", vote: updated });
+        }
+
+        // CASE B — No existing vote → create
+        const created = await prisma.vote.create({
+            data: {
+                userId,
+                postId,
+                type: voteType,
+            },
+        });
+
+        return res.json({ message: "Vote created", vote: created });
+    } catch (error) {
+        console.error(error);
+        return res.status(400).json({ error: "Invalid request" });
+    }
+
+})
+
+
+//comment on a post
+
+postRouter.post("/:postId/comments", authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const { postId } = req.params;
+        const authorId = req.user?.userId;
+
+        if (!authorId) {
+            return res.status(401).json({ error: "User not authenticated" });
+        }
+
+        if (!postId) {
+            return res.status(400).json({ error: "Post ID not provided" });
+        }
+
+        // Validate request body
+        const { text, parentId } = createCommentSchema.parse(req.body);
+
+        // Create comment (top-level or reply)
+        const newComment = await prisma.comment.create({
+            data: {
+                text,
+                authorId,
+                postId,
+                parentId: parentId ?? null,
+            },
+        });
+
+        return res.status(201).json({
+            message: "Comment created successfully",
+            comment: newComment,
+        });
+    } catch (error) {
+        console.error(error);
+
+        return res.status(400).json({
+            error: "Invalid request body or failed to create comment",
+        });
+    }
+});
+
+
+//get all comments for a post
+
+postRouter.get("/:postId/comments", async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const { postId } = req.params;
+        console.log("Fetching comments for postId:", postId);
+        if (!postId) {
+            return res.status(400).json({
+                error: "Post ID not provided",
+            });
+        }
+
+        const comments = await prisma.comment.findMany({
+            where: { postId },
+            orderBy: { createdAt: "asc" },
+            include: {
+                _count: {
+                    select: { replies: true },
+                },
+
+            }
+        });
+
+        return res.json({
+            comments,
+        });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            error: "Failed to fetch comments",
+        });
     }
 });
