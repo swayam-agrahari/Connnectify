@@ -20,8 +20,6 @@ export default async function Communities() {
         isCreated: comm.creator === userComunities.userId
     }));
 
-    console.log("enriched communities:", enrichedCommunities);
-
 
     return (
         <CommunitiesPage allCommunities={enrichedCommunities} createdCommunities={createdCommunities} />

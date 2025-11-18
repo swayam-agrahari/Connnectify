@@ -2,6 +2,7 @@
 import React, { useState, useTransition } from 'react';
 import { Users, Search, Filter, TrendingUp, Star, CheckCircle, Plus, Calendar, MapPin, ArrowRight, Sparkles } from 'lucide-react';
 import { joinLeaveCommunity } from './action';
+import { redirect, useRouter } from 'next/navigation';
 
 
 export default function CommunitiesPage({ allCommunities, createdCommunities }: { allCommunities: any[], createdCommunities: any[] }) {
@@ -9,6 +10,8 @@ export default function CommunitiesPage({ allCommunities, createdCommunities }: 
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [pending, startTransition] = useTransition();
+
+    const router = useRouter();
 
 
     const categories = ['all', 'Technology', 'Career', 'Culture', 'Sports'];
@@ -30,7 +33,6 @@ export default function CommunitiesPage({ allCommunities, createdCommunities }: 
                 console.log("handling join leave for", communityId, "currently joined:", isCurrentlyJoined);
                 const result = await joinLeaveCommunity(communityId, !isCurrentlyJoined);
 
-                // Update local state to reflect the change
                 const communityIndex = allCommunities.findIndex(c => c.id === communityId);
                 if (communityIndex !== -1) {
                     allCommunities[communityIndex].isJoined = !isCurrentlyJoined;
@@ -43,6 +45,10 @@ export default function CommunitiesPage({ allCommunities, createdCommunities }: 
 
 
     const joinedCommunities = allCommunities.filter(c => c.isMember);
+
+    function handleCreate() {
+        router.push("/communities/create")
+    }
 
 
     const CommunityCard = ({ community }: any) => {
@@ -58,16 +64,16 @@ export default function CommunitiesPage({ allCommunities, createdCommunities }: 
                 {/* Cover Header */}
                 <div className={`h-32 bg-linear-to-r from-blue-500 to-purple-600 relative`}>
                     <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors"></div>
+                    {(community.isMember && !community.isCreated) && (
+                        <div className="absolute top-4 right-4 px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full flex items-center gap-1.5 text-sm font-semibold text-gray-900">
+                            <TrendingUp className="w-4 h-4 text-orange-500" />
+                            <span>Member</span>
+                        </div>
+                    )}
                     {community.isCreated && (
                         <div className="absolute top-4 right-4 px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full flex items-center gap-1.5 text-sm font-semibold text-gray-900">
                             <TrendingUp className="w-4 h-4 text-orange-500" />
                             <span>Owner</span>
-                        </div>
-                    )}
-                     {community.isMember && (
-                        <div className="absolute top-4 right-4 px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full flex items-center gap-1.5 text-sm font-semibold text-gray-900">
-                            <TrendingUp className="w-4 h-4 text-orange-500" />
-                            <span>Member</span>
                         </div>
                     )}
                 </div>
@@ -112,13 +118,14 @@ export default function CommunitiesPage({ allCommunities, createdCommunities }: 
 
                         {/* Action Buttons */}
                         <div className="flex gap-2">
-                            <button className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors text-sm font-medium flex items-center gap-1">
+                            <button className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors text-sm font-medium flex items-center gap-1 cursor-pointer"
+                                onClick={() => router.push(`/c/${community.id}`)}>
                                 View
                                 <ArrowRight className="w-4 h-4" />
                             </button>
                             <button
                                 onClick={handleButtonClick}
-                                className={`px-4 py-2 rounded-lg transition-all text-sm font-medium ${isJoined
+                                className={`px-4 py-2 rounded-lg transition-all text-sm font-medium cursor-pointer ${isJoined
                                     ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                     : 'bg-purple-600 text-white hover:bg-purple-700'
                                     }`}
@@ -263,7 +270,7 @@ export default function CommunitiesPage({ allCommunities, createdCommunities }: 
                 )}
 
                 {/* Create Community CTA */}
-                <div className="mt-12 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200 p-8 text-center">
+                <div className="mt-12 bg-linear-to-r from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200 p-8 text-center">
                     <div className="max-w-2xl mx-auto">
                         <Star className="w-12 h-12 text-purple-600 mx-auto mb-4" />
                         <h3 className="text-2xl font-bold text-gray-900 mb-2">
@@ -272,7 +279,7 @@ export default function CommunitiesPage({ allCommunities, createdCommunities }: 
                         <p className="text-gray-600 mb-6">
                             Create a new community for your club, department, or interest group and start connecting with others!
                         </p>
-                        <button className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-semibold flex items-center gap-2 mx-auto">
+                        <button className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-semibold flex items-center gap-2 mx-auto" onClick={handleCreate}>
                             <Plus className="w-5 h-5" />
                             Create Community
                         </button>

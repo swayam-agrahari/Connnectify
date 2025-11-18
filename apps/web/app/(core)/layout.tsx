@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import NavBar from "./navbar";
 import { cookies } from "next/headers";
+import { getUserDetail } from "./dashboard/action";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
 
@@ -27,12 +28,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
         redirect("/login");
     }
-
+      const user = await getUserDetail();
     return (
 
 
         <>
-            <NavBar />
+            <NavBar  user={user.user}/>
             {children}
         </>
     )

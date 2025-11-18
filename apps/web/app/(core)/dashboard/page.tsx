@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import ConnectifyDashboard from '.';
-import { getAllPosts, getCommunities } from './action';
+import { getAllPosts, getCommunities, getUserDetail } from './action';
 
 import { cookies } from 'next/headers';
 
@@ -23,7 +23,6 @@ export default async function DashboardPage() {
   });
 
   const { valid } = await res.json();
-  console.log("Authentication valid:", valid);
   if (!valid) {
 
     redirect("/login");
@@ -32,9 +31,10 @@ export default async function DashboardPage() {
 
 
   const communities = await getCommunities();
-
   const posts = await getAllPosts();
+  const user = await getUserDetail();
+  console.log("User data in dashboard page:", user.user);
   return (
-    <ConnectifyDashboard initialCommunities={communities} posts={Array.isArray(posts) ? posts : []} />
+    <ConnectifyDashboard initialCommunities={communities} posts={Array.isArray(posts) ? posts : []} userInfo={user.user} />
   );
 }

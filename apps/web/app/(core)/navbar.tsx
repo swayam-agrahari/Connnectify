@@ -1,8 +1,9 @@
 "use client";
 import { Bell, Calendar, HomeIcon, Search, Users } from "lucide-react";
+import Image from "next/image";
 import { redirect } from "next/navigation";
 
-export default function NavBar() {
+export default function NavBar({ user }: { user: any }) {
     const handleClick = () => {
         redirect('/dashboard');
     };
@@ -60,7 +61,25 @@ export default function NavBar() {
                         </button>
 
                         <div className="w-8 h-8 rounded-full bg-linear-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold text-sm cursor-pointer" onClick={handleClick3}>
-                            JD
+                            <div className="w-10 h-10 rounded-full bg-linear-to-br from-blue-500 to-purple-500 flex items-center justify-center text-xl">
+                                {user.profileImageUrl ? (
+                                    <Image
+                                        src={user.profileImageUrl}
+                                        alt={user.name}
+                                        width={1024}
+                                        height={1024}
+                                        className="rounded-full"
+                                    />
+                                ) : (
+                                    <span className="text-white font-semibold">
+                                        {user.name && user.name
+                                            .split(" ")
+                                            .map((n: string) => n[0])
+                                            .join("")
+                                            .toUpperCase()}
+                                    </span>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>

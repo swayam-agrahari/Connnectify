@@ -3,11 +3,12 @@ import React, { useState, useTransition } from 'react';
 import { Home, Bell, Search, Plus, Users, TrendingUp, Calendar, Briefcase, MessageSquare, Heart, Share2, Bookmark, MoreHorizontal, Image as ImageIcon, Video, BarChart3, X } from 'lucide-react';
 import { createPost, sendImageToBackend } from './action';
 import { CreatePostModal, PostCard } from './post';
-import { redirect } from 'next/navigation';
+import { redirect, RedirectType } from 'next/navigation';
+import Image from 'next/image';
 
 type NewPost = {
     content: string;
-    type: 'TEXT' | 'IMAGE' | 'POLL'; // optional: use a union for type safety
+    type: 'TEXT' | 'IMAGE' | 'POLL';
     communityId: string;
     imageUrl?: string;
     poll?: {
@@ -19,10 +20,12 @@ type NewPost = {
 
 const ConnectifyDashboard = ({
     initialCommunities,
-    posts
+    posts,
+    userInfo
 }: {
     initialCommunities: any[];
     posts: any[];
+    userInfo: any;
 }) => {
     const [activeTab, setActiveTab] = useState('all');
     const [showCreatePost, setShowCreatePost] = useState(false);
@@ -69,7 +72,7 @@ const ConnectifyDashboard = ({
     };
 
     const handleCommunityClick = (community: any) => {
-        redirect(`/c/${community.id}`); // Navigate to the selected community
+        redirect(`/c/${community.id}`, RedirectType.push); // Navigate to the selected community
     }
 
     return (
@@ -84,8 +87,24 @@ const ConnectifyDashboard = ({
                         {/* Create Post Card */}
                         <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-4">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-linear-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold">
-                                    JD
+                                <div className="w-10 h-10 rounded-full bg-linear-to-br from-blue-500 to-purple-500 flex items-center justify-center text-xl">
+                                    {userInfo.profileImageUrl ? (
+                                        <Image
+                                            src={userInfo.profileImageUrl}
+                                            alt={userInfo.name}
+                                            width={1024}
+                                            height={1024}
+                                            className="rounded-full"
+                                        />
+                                    ) : (
+                                        <span className="text-white font-semibold">
+                                            {userInfo.name && userInfo.name
+                                                .split(" ")
+                                                .map((n: string) => n[0])
+                                                .join("")
+                                                .toUpperCase()}
+                                        </span>
+                                    )}
                                 </div>
                                 <button
                                     onClick={() => setShowCreatePost(true)}
@@ -165,7 +184,7 @@ const ConnectifyDashboard = ({
                                             {community.image ?? "🚀"}
                                         </div>
                                         <div className="flex-1">
-                                            <p className="font-medium text-sm text-neutral-800 dark:text-white">{community.displayName}</p>
+                                            <p className="font-medium text-sm text-neutral-800 dark:text-white">{community.name}</p>
                                             <p className="text-xs text-neutral-500">{community._count.members} members</p>
                                         </div>
                                     </div>
@@ -241,7 +260,7 @@ const ConnectifyDashboard = ({
             </div>
 
             {/* Create Post Modal */}
-            {showCreatePost && <CreatePostModal setNewPost={setNewPost} setShowCreatePost={setShowCreatePost} newPost={newPost} handleCreatePost={handleCreatePost} communities={communities} handleImageUpload={handleImageUpload} />}
+            {showCreatePost && <CreatePostModal userInfo={userInfo} setNewPost={setNewPost} setShowCreatePost={setShowCreatePost} newPost={newPost} handleCreatePost={handleCreatePost} communities={communities} handleImageUpload={handleImageUpload} />}
         </div>
     );
 };

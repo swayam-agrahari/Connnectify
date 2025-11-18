@@ -1,5 +1,6 @@
 "use server"
 
+import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 
 export async function getCommunities() {
@@ -92,7 +93,7 @@ export async function getAllPosts() {
         communityName: communityMap[post.communityId]?.displayName || "Public",
     }));
 
-    console.log("Enriched Posts:", enrichedPosts);
+
 
     return enrichedPosts;
 }
@@ -124,7 +125,7 @@ export async function createPost(data: any) {
     }
     const postData = await res.json();
     console.log("Created post data:", postData.post[0]);
-    return postData.post;
+    revalidatePath("/dashboard");
 }
 
 export async function sendImageToBackend(imageUrl: string) {
@@ -150,4 +151,38 @@ export async function sendImageToBackend(imageUrl: string) {
         console.error("Error sending image to backend:", error);
         throw error;
     }
+}
+
+
+export async function getUserDetail() {
+    try {
+        const cookieStore = await cookies();
+        const tokenCookie = cookieStore.get("session");
+
+        if (!tokenCookie) {
+            return { success: false, error: "Authentication session not found." };
+        }
+
+        const res = await fetch("http://localhost:3001/api/auth/me", {
+            credentials: "include",
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Cookie": `session=${tokenCookie.value}`
+            },
+
+        })
+
+        if (!res.ok) {
+            console.log("No user found")
+            throw new Error("Error finding user")
+        }
+
+        const user = await res.json()
+        return user;
+
+    } catch (error) {
+        console.log("error finding user", error)
+    }
+
 }

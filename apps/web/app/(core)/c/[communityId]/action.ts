@@ -27,7 +27,7 @@ export async function getAllPosts(communityId: string) {
 
 
     if (communityIds.length === 0) {
-        return [""];
+        return [];
     }
 
     const [usersRes, communitiesRes] = await Promise.all([
@@ -94,4 +94,63 @@ export async function getCommunityDetails(communityId: string) {
     const data = await res.json();
     console.log("comm", data)
     return data.community;
+}
+
+
+export async function checkMembership(communityId: string) {
+    const cookieStore = await cookies();
+    const tokenObj = cookieStore.get("session");
+    const uidObj = cookieStore.get("uid");
+
+    const token = tokenObj?.value;
+    const uid = uidObj?.value;
+    if (!token || !uid) {
+        throw new Error("no token or uni id")
+    }
+
+    const res = await fetch(`http://localhost:3002/api/community/${communityId}/membership-status`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "Cookie": `session=${token}; uid=${uid}`,
+        },
+    })
+
+    if (!res.ok) {
+        throw new Error("membership check failed")
+    }
+
+    const data = await res.json();
+
+    return data.isMember;
+}
+
+
+
+export async function checkCreatorStatus(communityId: string) {
+    const cookieStore = await cookies();
+    const tokenObj = cookieStore.get("session");
+    const uidObj = cookieStore.get("uid");
+
+    const token = tokenObj?.value;
+    const uid = uidObj?.value;
+    if (!token || !uid) {
+        throw new Error("no token or uni id")
+    }
+
+    const res = await fetch(`http://localhost:3002/api/community/${communityId}/created`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "Cookie": `session=${token}; uid=${uid}`,
+        },
+    })
+
+    if (!res.ok) {
+        throw new Error("membership check failed")
+    }
+
+    const data = await res.json();
+
+    return data.isCreator;
 }

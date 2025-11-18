@@ -1,3 +1,4 @@
+import { timeAgo } from "@/lib/utils";
 import { BarChart3, Bookmark, Heart, ImageIcon, MessageSquare, MoreHorizontal, Share2, Video, X } from "lucide-react";
 import { CldUploadButton } from "next-cloudinary";
 import Image from "next/image";
@@ -29,7 +30,9 @@ function handleView(postId: any) {
 }
 
 
-export const CreatePostModal = ({
+
+
+export const CreatePostModal = ({ userInfo,
     setNewPost, setShowCreatePost, newPost,
     handleCreatePost, communities, handleImageUpload
 }: any) => {
@@ -47,7 +50,20 @@ export const CreatePostModal = ({
     const removePollOption = (index: number) =>
         setPollOptions(pollOptions.filter((_, i) => i !== index));
 
-    const handleSubmit = () => {
+    const resetForm = () => {
+        setPostType("TEXT");
+        setPollOptions(["", ""]);
+        setPollDuration(1);
+        setNewPost({
+            content: "",
+            visibility: "Public",
+            communityId: null,
+            imageUrl: "",
+            tags: [],
+        });
+    };
+
+    const handleSubmit = async () => {
         if (postType === "POLL") {
             console.log("Submitting poll post");
             handleCreatePost({
@@ -59,7 +75,8 @@ export const CreatePostModal = ({
                 },
             });
         } else {
-            handleCreatePost({ ...newPost, type: postType });
+            await handleCreatePost({ ...newPost, type: postType });
+            resetForm();
         }
     };
 
@@ -80,11 +97,27 @@ export const CreatePostModal = ({
                 {/* Main Content */}
                 <div className="flex-1 p-4 space-y-4 overflow-y-auto">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-linear-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold">
-                            JD
+                        <div className="w-10 h-10 rounded-full bg-linear-to-br from-blue-500 to-purple-500 flex items-center justify-center text-xl">
+                            {userInfo.profileImageUrl ? (
+                                <Image
+                                    src={userInfo.profileImageUrl}
+                                    alt={userInfo.name}
+                                    width={1024}
+                                    height={1024}
+                                    className="rounded-full"
+                                />
+                            ) : (
+                                <span className="text-white font-semibold">
+                                    {userInfo.name && userInfo.name
+                                        .split(" ")
+                                        .map((n: string) => n[0])
+                                        .join("")
+                                        .toUpperCase()}
+                                </span>
+                            )}
                         </div>
                         <div>
-                            <p className="font-medium text-neutral-800 dark:text-white">John Doe</p>
+                            <p className="font-medium text-neutral-800 dark:text-white">{userInfo.name}</p>
                             <select
                                 className="text-sm text-neutral-600 dark:text-neutral-400 bg-transparent border-none outline-none"
                                 value={newPost.visibility}
@@ -261,7 +294,7 @@ export const PostCard = ({ post }: { post: any }) => {
                     <div>
                         <div className="flex items-center gap-2">
                             <span className="font-semibold text-neutral-800 dark:text-white">{post.authorName}</span>
-                            <span className="text-xs text-neutral-500">• {post.time}</span>
+                            <span className="text-xs text-neutral-500">• {timeAgo(new Date(post.createdAt).toDateString())}</span>
                         </div>
                         <span className="text-xs text-neutral-600 dark:text-neutral-400">{post.communityName}</span>
                     </div>

@@ -190,7 +190,7 @@ communityRouter.get("/:name", communityMiddleware, async (req: AuthenticatedRequ
 });
 
 
-// Join or Leave a community for a user (one endpoint)
+// Join a community for a user (one endpoint)
 communityRouter.post("/:communityId/join-leave", communityMiddleware, async (req: AuthenticatedRequest, res: Response) => {
     console.log("in here")
     const { communityId } = req.params;
@@ -247,7 +247,7 @@ communityRouter.post("/:communityId/join-leave", communityMiddleware, async (req
 }
 );
 
-
+//Leave a community for a user
 communityRouter.delete("/:communityId/join-leave", communityMiddleware, async (req: AuthenticatedRequest, res: Response) => {
     const { communityId } = req.params;
     const userId = req.user?.userId;
@@ -340,30 +340,34 @@ communityRouter.get("/test", async (req, res) => {
 //create a community by  creatorID
 
 communityRouter.post("/create", communityMiddleware, async (req: AuthenticatedRequest, res: Response) => {
-
+    console.log("in here create")
+    console.log(req.user)
     const userId = req.user?.userId;
+    console.log("userId", userId)
 
     if (!userId) {
         return res.status(401).json({ error: "User not authenticated" });
     }
-    const { uID, name, description } = req.body;
+    const { universityId, name, description } = req.body;
+    console.log("universityId", universityId, "name", name, "description", description)
 
-    if (!uID || !name) {
+    if (!universityId || !name) {
         return res.status(400).json({ error: "University ID and Community name are required" });
 
     }
 
     try {
+        console.log("in here try")
         const newCommunity = await prisma.community.create({
             data: {
                 name: name,
                 description: description || "",
                 creator: userId,
-                universityId: uID,
+                universityId: universityId,
             },
         });
 
-        res.status(201).json({
+        return res.status(200).json({
             message: "Community created successfully",
             community: newCommunity,
         });
@@ -374,3 +378,70 @@ communityRouter.post("/create", communityMiddleware, async (req: AuthenticatedRe
         return res.status(500).json({ error: "Failed to create community" });
     }
 });
+
+
+//check membership status
+communityRouter.get("/:communityId/membership-status", communityMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+    const { communityId } = req.params;
+    const userId = req.user?.userId;
+
+    if (!userId) {
+        return res.status(401).json({ error: "User not authenticated" });
+    }
+    if (!communityId) {
+        return res.status(400).json({ error: "Community ID is required" });
+    }
+
+    try {
+        const membership = await prisma.membership.findUnique({
+            where: {
+                userId_communityId: {
+                    userId,
+                    communityId,
+                },
+            },
+        });
+
+        const isMember = !!membership;
+
+        return res.status(200).json({ isMember });
+
+    } catch (error) {
+        console.error("Error checking membership status:", error);
+        res.status(500).json({ error: "Failed to check membership status" });
+    }
+});
+
+
+//check creator status
+communityRouter.get("/:communityId/created", communityMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+
+    try {
+        const { communityId } = req.params
+
+        if (!communityId) {
+            return res.status(403).json({ "msg": "No community id found" })
+        }
+        const creator = await prisma.community.findUnique({
+            where: {
+                id: communityId
+            },
+            select: {
+                creator: true
+            }
+        })
+
+        console.log("creator", creator)
+
+        const isCreator = !!(creator?.creator === req.user?.userId)
+        console.log(isCreator)
+        res.json({
+            "isCreator": isCreator
+        })
+    } catch (error) {
+        console.log("could not find creator");
+        res.status(403).json({
+            "msg": error
+        })
+    }
+})

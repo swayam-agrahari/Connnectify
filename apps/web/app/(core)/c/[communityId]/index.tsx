@@ -2,11 +2,37 @@
 import React, { useState, useTransition } from 'react';
 import { Users, Calendar, MapPin, Bell, Search, Plus, Heart, MessageCircle, Share2, Bookmark, MoreHorizontal, TrendingUp, Award, Briefcase } from 'lucide-react';
 import { PostCard } from '../../dashboard/post';
+import { checkMembership } from './action';
+import { joinLeaveCommunity } from '../../communities/action';
 
-export default function CommunityPageComponent({ posts, community }: { posts: any, community: any }) {
+export default function CommunityPageComponent({ posts, community, isMember, creator }: { posts: any, community: any, isMember: Boolean, creator: Boolean }) {
     const [activeTab, setActiveTab] = useState('posts');
-    const [isMember, setIsMember] = useState(false);
+    const [isMemberState, setIsMemberState] = useState(isMember);
+    const [isCreator, setIsCreator] = useState(creator);
+    const [pending, startTransition] = useTransition();
+    const [error, setError] = useState("");
 
+    function handleJoinLeave(cID: string) {
+        if (!cID) {
+            throw new Error("Community not found");
+        }
+        startTransition(async () => {
+            const res = await checkMembership(cID)
+            if (res.isMember) {
+                setIsMemberState(true)
+            }
+            else {
+                try {
+                    console.log("handling join leave for", cID, "currently joined:", isMemberState);
+                    await joinLeaveCommunity(cID, !isMemberState);
+                    setIsMemberState(!isMemberState);
+                } catch (error) {
+                    console.error("Error joining/leaving community:", error);
+                }
+            }
+
+        })
+    }
 
 
 
@@ -217,7 +243,7 @@ export default function CommunityPageComponent({ posts, community }: { posts: an
                     <div className="flex items-start justify-between">
                         <div className="flex-1">
                             <div className="flex items-center gap-3 mb-2">
-                                <h1 className="text-4xl font-bold">{community.displayName}</h1>
+                                <h1 className="text-4xl font-bold">{community.name}</h1>
                                 <Award className="w-6 h-6" />
                             </div>
                             <p className="text-lg text-blue-100 mb-4">{community.description}</p>
@@ -241,13 +267,13 @@ export default function CommunityPageComponent({ posts, community }: { posts: an
                                 <Bell className="w-5 h-5" />
                             </button>
                             <button
-                                onClick={() => setIsMember(!isMember)}
-                                className={`px-6 py-3 rounded-lg font-semibold transition-all ${isMember
+                                onClick={() => { handleJoinLeave(community.id) }}
+                                className={`px-6 py-3 rounded-lg font-semibold transition-all ${isMemberState
                                     ? 'bg-white/20 hover:bg-white/30 backdrop-blur-sm'
                                     : 'bg-white text-purple-600 hover:bg-gray-100'
                                     }`}
                             >
-                                {isMember ? 'Joined' : 'Join Community'}
+                                {isMemberState ? 'Joined' : 'Join Community'}
                             </button>
                         </div>
                     </div>
@@ -304,7 +330,7 @@ export default function CommunityPageComponent({ posts, community }: { posts: an
                     {/* Main Feed */}
                     <div className="lg:col-span-2 space-y-6">
                         {/* Create Post Card */}
-                        {isMember && (
+                        {isCreator && (
                             <div className="bg-white rounded-xl border border-gray-200 p-4">
                                 <div className="flex gap-3">
                                     <div className="w-10 h-10 rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold">
@@ -357,9 +383,13 @@ export default function CommunityPageComponent({ posts, community }: { posts: an
                         </div>
 
                         {/* Posts Feed */}
-                        {posts.map((post: any) => (
-                            <PostCard key={post.id} post={post} />
-                        ))}
+                        {posts.length === 0 ? (
+                            <p className="text-center text-gray-500 mt-12">No posts available in this community.</p>
+                        ) : (
+                            posts.map((post: any) => (
+                                <PostCard key={post.id} post={post} />
+                            ))
+                        )}
                     </div>
 
                     {/* Sidebar */}
