@@ -28,3 +28,22 @@ export function timeAgo(date: string | number | Date) {
 
   return "just now";
 }
+
+
+
+export function expireTime(expireDate: Date): string {
+  const now = new Date();
+  const diff = expireDate.getTime() - now.getTime(); // milliseconds
+
+  if (diff <= 0) return "Poll has ended"; // Change this to show the "ended" message
+
+  const seconds = Math.floor(diff / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  if (days > 0) return `Poll ends in ${days} day${days > 1 ? "s" : ""}`;
+  if (hours > 0) return `Poll ends in ${hours} hour${hours > 1 ? "s" : ""}`;
+  if (minutes > 0) return `Poll ends in ${minutes} minute${minutes > 1 ? "s" : ""}`;
+  return `Poll ends in ${seconds} second${seconds > 1 ? "s" : ""}`;
+}
