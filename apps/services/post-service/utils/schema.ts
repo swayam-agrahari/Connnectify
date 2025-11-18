@@ -15,7 +15,8 @@ export const createPostSchema = z.object({
     content: z.string().min(1, "Content cannot be empty"),
     type: z.enum(['TEXT', 'IMAGE', 'POLL']),
     communityId: z.string(),
-    imageUrl: z.string().url().optional(),
+    imageUrl: z.url().optional(),
+    expiresAt: z.date().optional(),
     poll: pollSchema.optional(),
 }).superRefine((data, ctx) => {
     if (data.type === 'POLL') {

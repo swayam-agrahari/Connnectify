@@ -17,12 +17,38 @@ postRouter.get("/", authMiddleware, async (req: AuthenticatedRequest, res: Respo
         const posts = await prisma.post.findMany({
             orderBy: { createdAt: 'desc' },
             include: {
-                pollOptions: true, votes: true, comments: true,
-
+                pollOptions: {
+                    include: {
+                        _count: {
+                            select: { votes: true }
+                        }
+                    },
+                    orderBy: { id: 'asc' }
+                },
+                pollVotes: {
+                    where: { userId },
+                    select: { pollOptionId: true }
+                },
+                votes: true,
+                comments: true
             }
         });
 
-        res.status(200).json({ posts });
+
+        const transformed = posts.map(post => {
+            return {
+                ...post,
+                pollOptions: post.pollOptions.map(opt => ({
+                    id: opt.id,
+                    text: opt.text,
+                    voteCount: opt._count.votes
+                })),
+                userVoteOptionId: post.pollVotes[0]?.pollOptionId || null
+            };
+        });
+
+
+        res.status(200).json({ "posts": transformed });
     }
     catch (error) {
         console.error("Error fetching posts:", error);
@@ -46,9 +72,9 @@ postRouter.get("/:communityId/posts/community", authMiddleware, async (req: Auth
             orderBy: { createdAt: 'desc' },
             include: {
                 pollOptions: true,
-                _count:true,
-                votes:true,
-                comments:true,
+                _count: true,
+                votes: true,
+                comments: true,
 
             }
         })
@@ -61,8 +87,14 @@ postRouter.get("/:communityId/posts/community", authMiddleware, async (req: Auth
 });
 
 //get a post by id
-postRouter.get("/:postId", async (req: Request, res: Response) => {
+postRouter.get("/:postId", authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
     try {
+        const userId = req.user?.userId;
+        console.log("Authenticated userId:", userId);
+        if (!userId) {
+            return res.status(401).json({ error: "User not authenticated" });
+        }
+
         const { postId } = req.params;
         console.log("Fetching post for postId:", postId);
 
@@ -74,6 +106,12 @@ postRouter.get("/:postId", async (req: Request, res: Response) => {
             where: { id: postId },
             include: {
                 pollOptions: true,
+                votes: true,
+                comments: true,
+                pollVotes: {
+                    where: { userId },
+                    select: { pollOptionId: true }
+                },
             }
         });
 
@@ -101,6 +139,7 @@ postRouter.post("/", authMiddleware, async (req: AuthenticatedRequest, res: Resp
     try {
         console.log("Request body:", req.body);
         const parsedResponse = createPostSchema.safeParse(req.body);
+        let expiresAt = null;
 
         if (!parsedResponse.success) {
             console.error("Validation errors:", parsedResponse.error);
@@ -108,7 +147,10 @@ postRouter.post("/", authMiddleware, async (req: AuthenticatedRequest, res: Resp
         }
 
 
-
+        if (parsedResponse.data.type === 'POLL' && parsedResponse.data.poll?.duration) {
+            expiresAt = new Date();
+            expiresAt.setDate(expiresAt.getDate() + parsedResponse.data.poll.duration);
+        }
         const data = await prisma.post.create({
             data: {
                 content: parsedResponse.data.content,
@@ -116,7 +158,7 @@ postRouter.post("/", authMiddleware, async (req: AuthenticatedRequest, res: Resp
                 imageUrl: parsedResponse.data.imageUrl ?? null,
                 authorId: userId,
                 communityId: parsedResponse.data.communityId ?? null,
-
+                expiresAt: expiresAt,
             },
 
         });
@@ -276,6 +318,125 @@ postRouter.get("/:postId/comments", async (req: AuthenticatedRequest, res: Respo
         console.error(error);
         return res.status(500).json({
             error: "Failed to fetch comments",
+        });
+    }
+});
+
+//get all likes for a post
+postRouter.get("/:postId/votes", async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const { postId } = req.params;
+        console.log("Fetching votes for postId:", postId);
+        if (!postId) {
+            return res.status(400).json({
+                error: "Post ID not provided",
+            });
+        }
+
+        const votes = await prisma.vote.findMany({
+            where: { postId },
+        });
+
+        return res.json({
+            votes,
+        });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            error: "Failed to fetch votes",
+        });
+    }
+});
+
+//vote on a poll option
+postRouter.post("/:postId/poll/vote", authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        console.log("Vote on poll option called");
+        const { postId } = req.params;
+        console.log("Fetching poll votes for postId:", postId);
+        if (!postId) {
+            return res.status(400).json({
+                error: "Post ID not provided",
+            });
+        }
+
+        const { pollOptionId } = req.body;
+        console.log("pollOptionId:", pollOptionId);
+
+        if (!pollOptionId) {
+            return res.status(400).json({
+                error: "Poll Option ID not provided",
+            });
+        }
+
+        //check post is of type poll
+        const post = await prisma.post.findUnique({
+            where: { id: postId },
+        });
+
+        if (!post || post.type !== "POLL") {
+            return res.status(400).json({
+                error: "Post is not of type POLL",
+            });
+        }
+
+        if (post.expiresAt && new Date() > post.expiresAt) {
+            return res.status(400).json({ error: "Poll has ended" });
+        }
+
+        //prisma.$transaction Check if PollVote exists for this userId + postId If it exists: Delete it (or update it) and Create the new PollVote for the selected pollOptionId
+
+        const pollVote = await prisma.$transaction(async (prisma) => {
+            const pollVotes = await prisma.pollVote.findUnique({
+                where: {
+                    userId_postId: {
+                        userId: req.user?.userId!,
+                        postId: postId
+                    }
+                }
+            });
+
+            if (pollVotes) {
+                await prisma.pollVote.delete({
+                    where: {
+                        userId_postId: {
+                            userId: req.user?.userId!,
+                            postId: postId
+                        }
+                    }
+                });
+            }
+
+            const newVote = await prisma.pollVote.create({
+                data: {
+                    userId: req.user?.userId!,
+                    postId: postId,
+                    pollOptionId: pollOptionId
+
+                }
+            });
+
+            return newVote;
+
+
+        });
+
+
+
+
+
+        return res.status(200).json({
+            message: "Vote recorded",
+            votedOptionId: pollVote.pollOptionId,
+        });
+
+
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            error: "Failed to fetch poll votes",
         });
     }
 });
