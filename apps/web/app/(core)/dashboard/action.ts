@@ -46,11 +46,13 @@ export async function getAllPosts() {
     if (!res.ok) {
         throw new Error('Failed to fetch posts');
     }
-    const postData = await res.json();;
+    const postData = await res.json();
+    console.log("Fetched posts:", postData.posts);
 
     const authorIds = [...new Set(postData.posts.map((p: any) => p.authorId))];
     const communityIds = [...new Set(postData.posts.map((p: any) => p.communityId))];
-
+    // console.log("Author IDs:", authorIds);
+    console.log("Community IDs:", communityIds);
 
     if (communityIds.length === 0) {
         return [""];
@@ -73,6 +75,8 @@ export async function getAllPosts() {
 
     const { users } = await usersRes.json();
     const { communities } = await communitiesRes.json();
+    // console.log("Fetched users for posts:", users);
+    console.log("Fetched communities for posts:", communities);
 
     const userMap = users.reduce((acc: any, user: any) => {
         acc[user.id] = user;
@@ -83,6 +87,8 @@ export async function getAllPosts() {
         acc[comm.id] = comm;
         return acc;
     }, {});
+    // console.log("User Map:", userMap);bbb
+    console.log("Community Map:", communityMap);
 
 
 
@@ -90,7 +96,7 @@ export async function getAllPosts() {
         ...post,
         authorName: userMap[post.authorId]?.username || "Unknown User",
         authorImage: userMap[post.authorId]?.profileImageUrl,
-        communityName: communityMap[post.communityId]?.displayName || "Public",
+        communityName: communityMap[post.communityId]?.name || "Public",
     }));
 
 
@@ -185,4 +191,44 @@ export async function getUserDetail() {
         console.log("error finding user", error)
     }
 
+}
+
+
+export async function voteOnPoll(postId: string, pollOptionId: string) {
+    try {
+        const cookieStore = await cookies();
+        const tokenCookie = cookieStore.get("session");
+
+        if (!tokenCookie) {
+            return { success: false, error: "Authentication session not found." };
+        }
+        const res = await fetch(`http://localhost:3003/api/posts/${postId}/poll/vote`, {
+            credentials: "include",
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Cookie": `session=${tokenCookie.value}`
+            },
+            body: JSON.stringify({ pollOptionId }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            throw new Error(data.error || "Something went wrong while voting");
+        }
+
+        // Redirect or update UI based on the response
+        revalidatePath("/posts/" + postId);
+        return {
+            success: true,
+            votedOptionId: data.votedOptionId,
+        };
+    } catch (error) {
+        console.error("Error casting vote:", error);
+        if (error instanceof Error) {
+            return { success: false, error: error.message };
+        }
+        return { success: false, error: "An unknown error occurred" };
+    }
 }

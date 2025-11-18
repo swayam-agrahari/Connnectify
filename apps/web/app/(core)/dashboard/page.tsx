@@ -33,7 +33,7 @@ export default async function DashboardPage() {
   const communities = await getCommunities();
   const posts = await getAllPosts();
   const user = await getUserDetail();
-  console.log("User data in dashboard page:", user.user);
+  console.log("posts in dashboard:", posts);
   return (
     <ConnectifyDashboard initialCommunities={communities} posts={Array.isArray(posts) ? posts : []} userInfo={user.user} />
   );

@@ -3,7 +3,7 @@ import React, { useState, useTransition } from 'react';
 import { Home, Bell, Search, Plus, Users, TrendingUp, Calendar, Briefcase, MessageSquare, Heart, Share2, Bookmark, MoreHorizontal, Image as ImageIcon, Video, BarChart3, X } from 'lucide-react';
 import { createPost, sendImageToBackend } from './action';
 import { CreatePostModal, PostCard } from './post';
-import { redirect, RedirectType } from 'next/navigation';
+import { redirect, RedirectType, useRouter } from 'next/navigation';
 import Image from 'next/image';
 
 type NewPost = {
@@ -33,6 +33,8 @@ const ConnectifyDashboard = ({
     const [communities, setCommunities] = useState(initialCommunities);
     const [pending, startTransition] = useTransition();
     const [errors, setErrors] = useState<Record<string, string[]>>({});
+
+    const router = useRouter();
 
 
     const trendingTopics = [
@@ -164,7 +166,7 @@ const ConnectifyDashboard = ({
                         {/* Posts */}
                         <div className="space-y-4">
                             {posts.map((post) => (
-                                <PostCard key={post.id} post={post} />
+                                <PostCard key={post.id} post={post} userId={userInfo.id} />
                             ))}
                         </div>
                     </div>
@@ -175,7 +177,7 @@ const ConnectifyDashboard = ({
                         <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-4">
                             <div className="flex items-center justify-between mb-4">
                                 <h3 className="font-semibold text-neutral-800 dark:text-white">Your Communities</h3>
-                                <button className="text-blue-500 text-sm font-medium hover:underline">See all</button>
+                                <button className="text-blue-500 text-sm font-medium hover:underline" onClick={() => router.push('/communities')}>See all</button>
                             </div>
                             <div className="space-y-3">
                                 {communities.map((community) => (

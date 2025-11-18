@@ -1,9 +1,12 @@
+"use client";
 import { timeAgo } from "@/lib/utils";
 import { BarChart3, Bookmark, Heart, ImageIcon, MessageSquare, MoreHorizontal, Share2, Video, X } from "lucide-react";
 import { CldUploadButton } from "next-cloudinary";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { useState } from "react";
+import PollDisplay from "./PollDisplay";
+import { voteOnPoll } from "./action";
 
 interface Poll {
     options: string[];
@@ -243,9 +246,10 @@ export const CreatePostModal = ({ userInfo,
 };
 
 
-export const PostCard = ({ post }: { post: any }) => {
+export const PostCard = ({ post, userId }: { post: any, userId: string }) => {
 
     const [likesCount, setLikesCount] = useState(post.votes?.length || 0);
+    const isLiked = post.votes.some((like: any) => like.userId === userId);
     const handleVote = async (postId: string, voteType: "UPVOTE" | "DOWNVOTE") => {
         try {
             const res = await fetch(`http://localhost:3003/api/posts/${postId}/vote`, {
@@ -296,7 +300,7 @@ export const PostCard = ({ post }: { post: any }) => {
                             <span className="font-semibold text-neutral-800 dark:text-white">{post.authorName}</span>
                             <span className="text-xs text-neutral-500">• {timeAgo(new Date(post.createdAt).toDateString())}</span>
                         </div>
-                        <span className="text-xs text-neutral-600 dark:text-neutral-400">{post.communityName}</span>
+                        <span className="text-xs text-neutral-600 dark:text-neutral-400">{post.communityName ? post.communityName : "Public"}</span>
                     </div>
                 </div>
                 <button className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-full transition-colors">
@@ -331,22 +335,9 @@ export const PostCard = ({ post }: { post: any }) => {
             )}
 
             {/* Poll */}
-            {post.type === "POLL" && post.pollOptions && (
+            {post.type === "POLL" && (
                 <div className="mb-3">
-                    <div className=" font-semibold text-neutral-800 dark:text-white mb-2">Poll:</div>
-                    <div className="flex flex-col gap-2">
-                        {post.pollOptions.map((option: any, idx: number) => (
-                            <button
-                                key={idx}
-                                className="px-4 py-2 bg-gray-100 dark:bg-neutral-700 rounded-md text-left hover:bg-gray-200 dark:hover:bg-neutral-600 transition-colors"
-                            >
-                                {option.text}
-                            </button>
-                        ))}
-                    </div>
-                    <div className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
-                        Duration: {post.poll?.duration ?? 4} hours
-                    </div>
+                    <PollDisplay post={post} votePollAction={voteOnPoll} />
                 </div>
             )}
 
@@ -357,7 +348,7 @@ export const PostCard = ({ post }: { post: any }) => {
                         className="flex items-center gap-2 text-neutral-600 dark:text-neutral-400 hover:text-red-500 transition-colors"
                         onClick={() => handleVote(post.id, "UPVOTE")}
                     >
-                        <Heart className="w-5 h-5" />
+                        <Heart className="w-5 h-5" color={isLiked ? "red" : "currentColor"} fill={isLiked ? "red" : "none"} />
                         <span className="text-sm font-medium">{likesCount || 0}</span>
                     </button>
 
