@@ -1,7 +1,7 @@
 "use server";
 
 import { loginSchema } from "@/lib/validations/auth";
-import { redirect } from "next/navigation";
+import { redirect, RedirectType } from "next/navigation";
 import { cookies } from "next/headers";
 
 export async function loginAction(formData: FormData) {
@@ -54,5 +54,5 @@ export async function loginAction(formData: FormData) {
     });
 
 
-    redirect("/dashboard");
+    redirect("/dashboard", RedirectType.push);
 }

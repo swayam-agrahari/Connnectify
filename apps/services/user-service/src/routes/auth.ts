@@ -212,8 +212,10 @@ authRouter.post('/verify', authMiddleware, async (req: AuthenticatedRequest, res
 
 
 authRouter.post('/me', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+    console.log("in hereee")
     const userId = req.body.userId || req.user?.userId;
     if (!userId) {
+        console.log("in here")
         return res.status(401).json({ error: "Unauthorized" });
     }
 
@@ -311,7 +313,6 @@ authRouter.post("/details", authMiddleware, async (req: AuthenticatedRequest, re
     }
 })
 
-
 //find user by id
 authRouter.get("/:userId", async (req: AuthenticatedRequest, res: Response) => {
     try {
@@ -344,6 +345,7 @@ authRouter.get("/:userId", async (req: AuthenticatedRequest, res: Response) => {
         return res.status(500).json({ error: "Internal server error" });
     }
 });
+
 
 
 

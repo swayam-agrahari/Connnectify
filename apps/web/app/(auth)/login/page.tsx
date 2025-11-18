@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { redirect, RedirectType } from "next/navigation";
 import LoginPage from ".";
 import { cookies } from 'next/headers';
 
@@ -24,7 +24,7 @@ export default async function Login() {
   const { valid } = await res.json();
   console.log("Authentication valid:", valid);
   if (valid) {
-    redirect("/dashboard");
+    redirect("/dashboard", RedirectType.push);
   }
 
   return <LoginPage />;

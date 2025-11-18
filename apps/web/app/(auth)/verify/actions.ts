@@ -2,7 +2,7 @@
 
 "use server";
 
-import { redirect } from "next/navigation";
+import { redirect, RedirectType } from "next/navigation";
 import { cookies } from "next/headers"; // Import cookies
 
 export async function verifyAction(formData: any) {
@@ -35,7 +35,7 @@ export async function verifyAction(formData: any) {
     // 4. Handle the response from the service
     if (res.ok) {
         // Success! The service verified the code.
-        redirect("/dashboard");
+        redirect("/dashboard", RedirectType.push);
     } else {
         // Failure! Get the error message from the service
         const data = await res.json();
