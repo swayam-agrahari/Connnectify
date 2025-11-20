@@ -31,6 +31,7 @@ model Community {
   id            String   @id @default(cuid())
   name          String    
   description   String?
+  communityTag  String  @default("All")
 
   creator       String   @default("")  
   university    University @relation(fields: [universityId], references: [id])

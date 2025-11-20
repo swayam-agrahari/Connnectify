@@ -4,40 +4,32 @@ import prisma from "@/prisma/index.js";
 
 export const universityRouter = express.Router();
 
-//get all communities for a university
-universityRouter.get("/:universityId/communities", async (req: Request, res: Response) => {
-    const { universityId } = req.params;
-
-    if (!universityId) {
-        return res.status(400).json({ message: "University ID is required" });
-    }
-
+//get all universities
+universityRouter.get("/", async (req: Request, res: Response) => {
     try {
-        // Fetch all communities for the given university ID
-        const communities = await prisma.community.findMany({
-            where: { universityId },
-            include: {
-                university: {
-                    select: {
-                        id: true,
-                        name: true,
-                        emailDomain: true,
-                        logoImageUrl: true
-                    },
-                },
-            },
-            orderBy: { name: "asc" }, // optional: sort alphabetically
-        });
-
-        if (!communities || communities.length === 0) {
-            return res.status(404).json({ message: "No communities found for this university" });
-        }
-
-        res.status(200).json({ communities });
+        const universities = await prisma.university.findMany();
+        res.status(200).json(universities);
     } catch (error) {
-        console.error("Error fetching communities:", error);
-        res.status(500).json({ error: "Failed to fetch communities" });
+        res.status(500).json({ error: "Failed to fetch universities" });
     }
 });
 
+//get university by id
+universityRouter.get("/:id", async (req: Request, res: Response) => {
+    const { id } = req.params;
+    if (!id) {
+        return res.status(400).json({ error: "University ID is required" });
+    }
+    try {
+        const university = await prisma.university.findUnique({
+            where: { id },
+        });
+        if (!university) {
+            return res.status(404).json({ error: "University not found" });
+        }
+        res.status(200).json(university);
+    } catch (error) {
+        res.status(500).json({ error: "Failed to fetch university" });
+    }
+});
 

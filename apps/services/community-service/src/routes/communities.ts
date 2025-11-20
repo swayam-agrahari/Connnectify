@@ -348,11 +348,11 @@ communityRouter.post("/create", communityMiddleware, async (req: AuthenticatedRe
     if (!userId) {
         return res.status(401).json({ error: "User not authenticated" });
     }
-    const { universityId, name, description } = req.body;
+    const { universityId, name, description, communityTag } = req.body;
     console.log("universityId", universityId, "name", name, "description", description)
 
-    if (!universityId || !name) {
-        return res.status(400).json({ error: "University ID and Community name are required" });
+    if (!universityId || !name || !communityTag) {
+        return res.status(400).json({ error: "University ID, Community name, and Community tag are required" });
 
     }
 
@@ -364,6 +364,7 @@ communityRouter.post("/create", communityMiddleware, async (req: AuthenticatedRe
                 description: description || "",
                 creator: userId,
                 universityId: universityId,
+                communityTag: communityTag
             },
         });
 
@@ -445,3 +446,16 @@ communityRouter.get("/:communityId/created", communityMiddleware, async (req: Au
         })
     }
 })
+
+// GET /api/communities/user/:userId/count
+communityRouter.get("/user/:userId/count", async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const count = await prisma.membership.count({
+            where: { userId: userId }
+        });
+        res.json({ count });
+    } catch (error) {
+        res.status(500).json({ error: "Error fetching count" });
+    }
+});
