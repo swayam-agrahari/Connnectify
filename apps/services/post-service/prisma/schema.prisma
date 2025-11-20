@@ -30,6 +30,7 @@ model post {
 
   authorId    String  
   communityId String?  
+  universityId String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -39,6 +40,8 @@ model post {
   votes       vote[]
   pollOptions pollOption[]
   pollVotes   pollVote[]
+
+  @@index([universityId])
 }
 
 

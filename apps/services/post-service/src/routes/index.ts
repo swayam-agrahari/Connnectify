@@ -1,10 +1,11 @@
 import express, { type Request, type Response } from 'express';
-import prisma from "@/prisma/index.js";
+import { PrismaClient } from "../generated/prisma/client";
 import { createCommentSchema, createPostSchema, voteSchema } from '@/utils/schema';
 import { authMiddleware, type AuthenticatedRequest } from '@/utils/authMiddleware';
 
 export const postRouter = express.Router();
 
+const prisma = new PrismaClient();
 
 //get all posts
 postRouter.get("/", authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
@@ -56,6 +57,60 @@ postRouter.get("/", authMiddleware, async (req: AuthenticatedRequest, res: Respo
     }
 });
 
+//get all posts by university 
+postRouter.get("/:universityId/posts", authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const userId = req.user?.userId;
+
+        if (!userId) {
+            return res.status(401).json({ error: "User not authenticated" });
+        }
+        const { universityId } = req.params;
+
+        if (!universityId) {
+            return res.status(401).json({ error: "University id not provided" });
+        }
+        const posts = await prisma.post.findMany({
+            where: {
+                universityId: universityId
+            },
+            orderBy: { createdAt: 'desc' },
+            include: {
+                pollOptions: {
+                    include: {
+                        _count: {
+                            select: { votes: true }
+                        }
+                    },
+                    orderBy: { id: 'asc' }
+                },
+                pollVotes: {
+                    where: { userId },
+                    select: { pollOptionId: true }
+                },
+                votes: true,
+                comments: true
+            }
+        })
+        const transformed = posts.map(post => {
+            return {
+                ...post,
+                pollOptions: post.pollOptions.map(opt => ({
+                    id: opt.id,
+                    text: opt.text,
+                    voteCount: opt._count.votes
+                })),
+                userVoteOptionId: post.pollVotes[0]?.pollOptionId || null
+            };
+        });
+        res.status(200).json({ posts: transformed });
+    } catch (error) {
+        console.error("Error fetching posts:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+
 //get all posts for a community
 postRouter.get("/:communityId/posts/community", authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
     try {
@@ -85,6 +140,41 @@ postRouter.get("/:communityId/posts/community", authMiddleware, async (req: Auth
         res.status(500).json({ error: "Internal server error" });
     }
 });
+//get all posts by a user
+postRouter.get("/user/:userId/posts", authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const { userId } = req.params;
+        console.log("Fetching posts for userId:", userId);
+
+        if (!userId) {
+            return res.status(401).json({ error: "User id not provided" });
+        }
+
+        const posts = await prisma.post.findMany({
+            where: {
+                authorId: userId
+            },
+            orderBy: { createdAt: 'desc' },
+            include: {
+                pollOptions: true,
+                _count: true,
+                votes: true,
+                comments: true,
+
+            }
+        })
+
+        if (!posts) {
+            return res.status(200).json({ error: "No posts found for this user" });
+        }
+
+        res.status(200).json({ posts });
+    } catch (error) {
+        console.error("Error fetching posts:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
 
 //get a post by id
 postRouter.get("/:postId", authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
@@ -157,7 +247,9 @@ postRouter.post("/", authMiddleware, async (req: AuthenticatedRequest, res: Resp
                 type: parsedResponse.data.type,
                 imageUrl: parsedResponse.data.imageUrl ?? null,
                 authorId: userId,
+                tags: parsedResponse.data.tags,
                 communityId: parsedResponse.data.communityId ?? null,
+                universityId: parsedResponse.data.universityId,
                 expiresAt: expiresAt,
             },
 
@@ -438,5 +530,45 @@ postRouter.post("/:postId/poll/vote", authMiddleware, async (req: AuthenticatedR
         return res.status(500).json({
             error: "Failed to fetch poll votes",
         });
+    }
+});
+
+// GET /api/posts/user/:userId/count
+postRouter.get("/user/:userId/count", async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const count = await prisma.post.count({
+            where: { authorId: userId }
+        });
+        res.json({ count });
+    } catch (error) {
+        res.status(500).json({ error: "Error fetching count" });
+    }
+});
+
+
+// GET /api/posts/tags/trending
+postRouter.get("/tags/trending", async (req: Request, res: Response) => {
+    try {
+        // FIX: Try "post" (lowercase) instead of "Post"
+        // Also ensure "tags" is the correct column name
+        const tags = await prisma.$queryRaw`
+            SELECT t as tag, CAST(COUNT(*) AS INT) as count
+            FROM "post", unnest("tags") t
+            GROUP BY t
+            ORDER BY count DESC
+            LIMIT 5;
+        `;
+
+        // Handle BigInt serialization if necessary (Prisma returns BigInt for counts)
+        const serializedTags = (tags as any[]).map(t => ({
+            tag: t.tag,
+            count: Number(t.count) // Convert BigInt to Number
+        }));
+
+        res.status(200).json({ tags: serializedTags });
+    } catch (error) {
+        console.error("Error fetching trending tags:", error);
+        res.status(500).json({ error: "Internal server error" });
     }
 });

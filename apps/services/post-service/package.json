@@ -6,12 +6,21 @@
   "scripts": {
     "dev": "nodemon --exec tsx src/index.ts"
   },
+  "prisma": {
+  "seed": "tsx prisma/seed.ts"
+},
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
     "dotenv": "^16.0.3",
-    "nodemon": "^3.1.11"
+    "nodemon": "^3.1.11",
+    "prisma": "^6.18.0"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^10.1.0",
+    "prisma": "^6.18.0",
+    "tsx": "^4.20.6"
   }
 }

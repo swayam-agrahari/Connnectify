@@ -18,6 +18,8 @@ export const createPostSchema = z.object({
     imageUrl: z.url().optional(),
     expiresAt: z.date().optional(),
     poll: pollSchema.optional(),
+    tags: z.array(z.string()).default([]),
+    universityId: z.string(),
 }).superRefine((data, ctx) => {
     if (data.type === 'POLL') {
         if (!data.poll) {
