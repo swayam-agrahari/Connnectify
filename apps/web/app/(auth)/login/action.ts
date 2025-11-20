@@ -56,3 +56,9 @@ export async function loginAction(formData: FormData) {
 
     redirect("/dashboard", RedirectType.push);
 }
+
+
+export async function logoutAction() {
+    (await cookies()).delete("session");
+    redirect("/login");
+}
