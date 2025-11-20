@@ -8,6 +8,7 @@ export async function createCommunity(data: {
     description: string;
     universityId: string;
     creator: string;
+    communityTag: string;
 }) {
     try {
         const cookieStore = await cookies();

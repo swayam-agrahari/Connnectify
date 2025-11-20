@@ -3,13 +3,15 @@ import React, { useState, useTransition } from 'react';
 import { ArrowLeft, Users, FileText, Sparkles, CheckCircle2, AlertCircle } from 'lucide-react';
 import { createCommunity } from './action';
 import { useRouter } from 'next/navigation';
+import { PREDEFINED_COMMUNITY_TAGS } from '@/lib/constants';
 
 export default function CreateCommunityComponent({ universityId, userId }: { universityId: string, userId: string }) {
     const [formData, setFormData] = useState({
         name: '',
         description: '',
         universityId: universityId,
-        userId: userId
+        userId: userId,
+        communityTag: 'General',
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [status, setStatus] = useState({ type: '', message: '' });
@@ -64,7 +66,8 @@ export default function CreateCommunityComponent({ universityId, userId }: { uni
                     name: formData.name,
                     description: formData.description,
                     universityId: formData.universityId,
-                    creator: formData.userId
+                    creator: formData.userId,
+                    communityTag: formData.communityTag,
                 });
 
                 if (!response.success) {
@@ -99,17 +102,6 @@ export default function CreateCommunityComponent({ universityId, userId }: { uni
     return (
         <div className="min-h-screen bg-linear-to-br from-purple-50 via-pink-50 to-blue-50">
             {/* Header */}
-            {/* <div className="bg-white/80 backdrop-blur-sm border-b border-purple-100 sticky top-0 z-10">
-                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                    <button
-                        onClick={() => router.push('/communities')}
-                        className="flex items-center gap-2 text-purple-600 hover:text-purple-700 transition-colors font-medium cursor-pointer"
-                    >
-                        <ArrowLeft className="w-5 h-5" />
-                        Back to Communities
-                    </button>
-                </div>
-            </div> */}
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
                 <button
                     onClick={() => router.push('/communities')}
@@ -180,6 +172,27 @@ export default function CreateCommunityComponent({ universityId, userId }: { uni
                                 <p className="text-sm text-gray-500">
                                     {formData.description.length}/500 characters
                                 </p>
+                            </div>
+
+                            {/* Category Dropdown */}
+                            <div className="space-y-2">
+                                <label className="flex items-center gap-2 text-sm font-semibold text-gray-900">
+                                    <Users className="w-5 h-5 text-purple-600" />
+                                    Community Category
+                                    <span className="text-red-500">*</span>
+                                </label>
+
+                                <select
+                                    value={formData.communityTag}
+                                    onChange={(e) => handleChange("communityTag", e.target.value)}
+                                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-white text-gray-900 focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all"
+                                >
+                                    {PREDEFINED_COMMUNITY_TAGS.map((tag) => (
+                                        <option key={tag} value={tag}>
+                                            {tag}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
 
                             {/* Guidelines */}

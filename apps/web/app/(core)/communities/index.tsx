@@ -3,6 +3,7 @@ import React, { useState, useTransition } from 'react';
 import { Users, Search, Filter, TrendingUp, Star, CheckCircle, Plus, Calendar, MapPin, ArrowRight, Sparkles } from 'lucide-react';
 import { joinLeaveCommunity } from './action';
 import { redirect, useRouter } from 'next/navigation';
+import { PREDEFINED_COMMUNITY_TAGS } from '@/lib/constants';
 
 
 export default function CommunitiesPage({ allCommunities, createdCommunities }: { allCommunities: any[], createdCommunities: any[] }) {
@@ -14,18 +15,30 @@ export default function CommunitiesPage({ allCommunities, createdCommunities }: 
     const router = useRouter();
 
 
-    const categories = ['all', 'Technology', 'Career', 'Culture', 'Sports'];
+    const categories = ["all", ...PREDEFINED_COMMUNITY_TAGS];
 
-    const filteredCommunities = allCommunities.filter(community => {
-        const matchesSearch = community.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            community.description.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesCategory = selectedCategory === 'all' || community.category === selectedCategory;
-        const matchesTab = activeTab === 'discover' ? true :
-            activeTab === 'joined' ? community.isMember :
-                activeTab === 'created' ? community.isCreated : true;
+    const filteredCommunities = allCommunities.filter((community) => {
+        const matchesSearch =
+            community.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            community.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (community.communityTag ?? "").toLowerCase().includes(searchQuery.toLowerCase());
+
+        const matchesCategory =
+            selectedCategory === "all" ||
+            (community.communityTag ?? "").toLowerCase() === selectedCategory.toLowerCase();
+
+        const matchesTab =
+            activeTab === "discover"
+                ? true
+                : activeTab === "joined"
+                    ? community.isMember
+                    : activeTab === "created"
+                        ? community.isCreated
+                        : true;
 
         return matchesSearch && matchesCategory && matchesTab;
     });
+
 
     function handleJoinLeave(communityId: string, isCurrentlyJoined: boolean) {
         startTransition(async () => {
@@ -113,7 +126,7 @@ export default function CommunitiesPage({ allCommunities, createdCommunities }: 
                     {/* Category Badge */}
                     <div className="flex items-center justify-between">
                         <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
-                            {community.category ? community.category : "Technology"}
+                            <span>{community.communityTag ?? "General"}</span>
                         </span>
 
                         {/* Action Buttons */}

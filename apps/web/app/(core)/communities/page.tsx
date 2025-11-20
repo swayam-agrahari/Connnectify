@@ -6,6 +6,7 @@ import { getAllComunities, getAllUserCommunities } from "./action";
 export default async function Communities() {
 
     const communities = await getAllComunities();
+    console.log("all communities", communities);
 
 
     const userComunities = await getAllUserCommunities();

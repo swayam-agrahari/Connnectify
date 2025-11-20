@@ -11,7 +11,6 @@ export default function PollDisplay({
     votePollAction: (postId: string, optionId: string) => Promise<any>;
 }) {
     const isExpired = post.expiresAt && new Date(post.expiresAt) < new Date();
-
     // Local state to track current vote
     const [userVote, setUserVote] = useState<string | null>(post.userVoteOptionId || null);
     const [voting, setVoting] = useState(false);
@@ -21,7 +20,10 @@ export default function PollDisplay({
 
 
     const handleVote = async (optionId: string) => {
-        if (isExpired) return;
+        if (isExpired) {
+            console.warn("Poll expired — cannot vote.");
+            return;
+        }
 
         // ⛔ Prevent voting again on same option — do nothing
         if (optionId === userVote) {
@@ -35,11 +37,8 @@ export default function PollDisplay({
         if (result.success) {
             const newOptionId = result.votedOptionId;
             const oldOptionId = userVote;
-
-            // Update local vote state
             setUserVote(newOptionId);
 
-            // Update poll options locally
             setPollOptions((prev: any) =>
                 prev.map((opt: any) => {
                     if (opt.id === newOptionId) {
@@ -73,13 +72,15 @@ export default function PollDisplay({
                     return (
                         <button
                             key={opt.id}
-                            disabled={voting}
+                            disabled={voting || isExpired}
                             onClick={() => handleVote(opt.id)}
                             className={`w-full px-4 py-2 rounded-lg border text-left transition-all
                                 ${isUserPick
                                     ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
                                     : "border-neutral-300 dark:border-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-700"
-                                }`}
+                                }
+                            ${isExpired ? "cursor-not-allowed opacity-60 hover:bg-transparent" : ""}
+                `}
                         >
                             <div className="flex justify-between items-center">
                                 <span>{opt.text}</span>
@@ -119,7 +120,7 @@ export default function PollDisplay({
                 const isUserPick = opt.id === userVote;
 
                 return (
-                    <div key={opt.id} className="w-full">
+                    <div key={opt.id} className="w-full mt-2">
                         <div
                             className={`relative w-full rounded-lg p-2 border
                                 ${isUserPick

@@ -58,13 +58,14 @@ export async function getAllPosts(communityId: string) {
         return acc;
     }, {});
 
-
+    // console.log("User Map:", userMap);
+    console.log("Community Map:", communityMap);
 
     const enrichedPosts: any[] = postData.posts.map((post: any) => ({
         ...post,
         authorName: userMap[post.authorId]?.username || "Unknown User",
         authorImage: userMap[post.authorId]?.profileImageUrl,
-        communityName: communityMap[post.communityId]?.displayName || "Public",
+        communityName: communityMap[post.communityId]?.name || "Public",
     }));
 
     console.log("Enriched Posts:", enrichedPosts);

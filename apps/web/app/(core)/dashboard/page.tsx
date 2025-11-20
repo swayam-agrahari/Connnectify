@@ -33,8 +33,15 @@ export default async function DashboardPage() {
   const communities = await getCommunities();
   const posts = await getAllPosts();
   const user = await getUserDetail();
-  console.log("posts in dashboard:", posts);
+
+  const tagsRes = await fetch(`http://localhost:3003/api/posts/tags/trending`, {
+    cache: 'no-store',
+    method: "GET"
+  });
+  console.log("tag res", tagsRes)
+  const { tags } = await tagsRes.json();
+  console.log("tags here", tags)
   return (
-    <ConnectifyDashboard initialCommunities={communities} posts={Array.isArray(posts) ? posts : []} userInfo={user.user} />
+    <ConnectifyDashboard initialCommunities={communities} posts={Array.isArray(posts) ? posts : []} userInfo={user.user} tags={tags} />
   );
 }

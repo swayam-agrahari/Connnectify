@@ -2,9 +2,10 @@
 import React, { useState, useTransition } from 'react';
 import { Home, Bell, Search, Plus, Users, TrendingUp, Calendar, Briefcase, MessageSquare, Heart, Share2, Bookmark, MoreHorizontal, Image as ImageIcon, Video, BarChart3, X } from 'lucide-react';
 import { createPost, sendImageToBackend } from './action';
-import { CreatePostModal, PostCard } from './post';
+import { PostCard } from './post';
 import { redirect, RedirectType, useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { CreatePostModal } from '../posts/CreatePostModal';
 
 type NewPost = {
     content: string;
@@ -17,15 +18,26 @@ type NewPost = {
     }
 };
 
+// Define filter -> tags mapping
+const TAG_FILTERS: Record<string, string[]> = {
+    all: [],
+    events: ["event", "events"],
+    placements: ["placement", "placements"],
+    clubs: ["club", "clubs"]
+};
+
+
 
 const ConnectifyDashboard = ({
     initialCommunities,
     posts,
-    userInfo
+    userInfo,
+    tags
 }: {
     initialCommunities: any[];
     posts: any[];
     userInfo: any;
+    tags: any[];
 }) => {
     const [activeTab, setActiveTab] = useState('all');
     const [showCreatePost, setShowCreatePost] = useState(false);
@@ -37,12 +49,8 @@ const ConnectifyDashboard = ({
     const router = useRouter();
 
 
-    const trendingTopics = [
-        { tag: 'Hackathon2025', posts: 234 },
-        { tag: 'PlacementDrive', posts: 189 },
-        { tag: 'CulturalFest', posts: 156 },
-        { tag: 'TechTalks', posts: 98 },
-    ];
+    const trendingTopics = tags;
+
 
     async function handleCreatePost(postData?: NewPost) {
         startTransition(async () => {
@@ -77,6 +85,21 @@ const ConnectifyDashboard = ({
         redirect(`/c/${community.id}`, RedirectType.push); // Navigate to the selected community
     }
 
+    const filteredPosts = posts.filter(post => {
+        // if "all" → no filters
+        if (activeTab === "all") return true;
+
+        const filterTags = TAG_FILTERS[activeTab];
+        if (!filterTags) return true;
+
+        // ensure tags exist
+        const postTags = Array.isArray(post.tags) ? post.tags.map((t: any) => t.toLowerCase()) : [];
+
+        // check if ANY tag in post matches any tag in filter
+        return postTags.some((tag: any) => filterTags.includes(tag));
+    });
+
+
     return (
         <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900">
 
@@ -96,7 +119,7 @@ const ConnectifyDashboard = ({
                                             alt={userInfo.name}
                                             width={1024}
                                             height={1024}
-                                            className="rounded-full"
+                                            className="rounded-full object-cover w-10 h-10"
                                         />
                                     ) : (
                                         <span className="text-white font-semibold">
@@ -165,9 +188,13 @@ const ConnectifyDashboard = ({
 
                         {/* Posts */}
                         <div className="space-y-4">
-                            {posts.map((post) => (
-                                <PostCard key={post.id} post={post} userId={userInfo.id} />
-                            ))}
+                            {filteredPosts.length === 0 ? (
+                                <p className="text-neutral-500 text-sm px-2">No posts found for this filter.</p>
+                            ) : (
+                                filteredPosts.map(post => (
+                                    <PostCard key={post.id} post={post} userId={userInfo.id} />
+                                ))
+                            )}
                         </div>
                     </div>
 
@@ -205,7 +232,7 @@ const ConnectifyDashboard = ({
                                     <div key={idx} className="flex items-center justify-between p-2 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors cursor-pointer">
                                         <div>
                                             <p className="font-medium text-sm text-neutral-800 dark:text-white">#{topic.tag}</p>
-                                            <p className="text-xs text-neutral-500">{topic.posts} posts</p>
+                                            <p className="text-xs text-neutral-500">{topic.count} posts</p>
                                         </div>
                                         <span className="text-xs font-medium text-blue-500">{idx + 1}</span>
                                     </div>

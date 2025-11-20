@@ -4,13 +4,27 @@ import { Users, Calendar, MapPin, Bell, Search, Plus, Heart, MessageCircle, Shar
 import { PostCard } from '../../dashboard/post';
 import { checkMembership } from './action';
 import { joinLeaveCommunity } from '../../communities/action';
+import { useCreatePost } from '@/hooks/useCreatePost';
+import { CreatePostModal } from '../../posts/CreatePostModal';
 
-export default function CommunityPageComponent({ posts, community, isMember, creator }: { posts: any, community: any, isMember: Boolean, creator: Boolean }) {
+export default function CommunityPageComponent({ posts, community, isMember, creator, userInfo }: { posts: any, community: any, isMember: Boolean, creator: Boolean, userInfo: any }) {
     const [activeTab, setActiveTab] = useState('posts');
     const [isMemberState, setIsMemberState] = useState(isMember);
     const [isCreator, setIsCreator] = useState(creator);
     const [pending, startTransition] = useTransition();
     const [error, setError] = useState("");
+
+
+
+    const {
+        showCreatePost,
+        setShowCreatePost,
+        newPost,
+        setNewPost,
+        handleCreatePost,
+        handleImageUpload,
+    } = useCreatePost();
+
 
     function handleJoinLeave(cID: string) {
         if (!cID) {
@@ -35,205 +49,6 @@ export default function CommunityPageComponent({ posts, community, isMember, cre
     }
 
 
-
-    // // Mock community data
-    // const community = {
-    //     id: "1",
-    //     name: "tech-club",
-    //     displayName: "Tech Club",
-    //     description: "Official community for technology enthusiasts. Stay updated with hackathons, workshops, and tech talks.",
-    //     university: "Kerala University",
-    //     memberCount: 1247,
-    //     postCount: 89,
-    //     createdAt: "2024-01-15"
-    // };
-
-    // // Mock posts data
-    // const [posts, setPosts] = useState([
-    //     {
-    //         id: "1",
-    //         type: "event",
-    //         author: {
-    //             name: "Rahul Krishna",
-    //             avatar: "RK",
-    //             role: "Club President"
-    //         },
-    //         timestamp: "2 hours ago",
-    //         title: "Annual Tech Fest 2025 - Registration Open!",
-    //         content: "We're excited to announce our biggest tech fest yet! Join us for 3 days of hackathons, workshops, and networking. Early bird registration ends this Friday.",
-    //         event: {
-    //             date: "Dec 15-17, 2024",
-    //             location: "Main Auditorium",
-    //             registered: 234
-    //         },
-    //         likes: 156,
-    //         liked: false,
-    //         comments: 23,
-    //         shares: 45,
-    //         tags: ["Event", "Hackathon"]
-    //     },
-    //     {
-    //         id: "2",
-    //         type: "placement",
-    //         author: {
-    //             name: "Placement Cell",
-    //             avatar: "PC",
-    //             role: "Official"
-    //         },
-    //         timestamp: "5 hours ago",
-    //         title: "Google is hiring for SDE roles!",
-    //         content: "Google is conducting campus placements next month. Eligibility: 7+ CGPA, No backlogs. Application deadline: Nov 20th. Register through the placement portal.",
-    //         placement: {
-    //             company: "Google",
-    //             role: "Software Development Engineer",
-    //             ctc: "₹24 LPA"
-    //         },
-    //         likes: 342,
-    //         liked: false,
-    //         comments: 67,
-    //         shares: 89,
-    //         tags: ["Placement", "Urgent"]
-    //     },
-    //     {
-    //         id: "3",
-    //         type: "announcement",
-    //         author: {
-    //             name: "Priya Nair",
-    //             avatar: "PN",
-    //             role: "Core Team"
-    //         },
-    //         timestamp: "1 day ago",
-    //         title: "Workshop: Introduction to Web3 & Blockchain",
-    //         content: "Free workshop this Saturday! Learn about blockchain technology, smart contracts, and how to build your first dApp. Limited seats available, register now!",
-    //         likes: 98,
-    //         liked: false,
-    //         comments: 12,
-    //         shares: 34,
-    //         tags: ["Workshop", "Web3"]
-    //     }
-    // ]);
-
-    // const toggleLike = ({ postId }: { postId: string }) => {
-    //     setPosts(posts.map(post =>
-    //         post.id === postId
-    //             ? { ...post, likes: post.likes + (post.liked ? -1 : 1), liked: !post.liked }
-    //             : post
-    //     ));
-    // };
-
-    // const PostCard = ({ post }: any) => (
-    //     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
-    //         <div className="p-6">
-    //             {/* Post Header */}
-    //             <div className="flex items-start justify-between mb-4">
-    //                 <div className="flex items-center gap-3">
-    //                     <div className="w-12 h-12 rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold">
-    //                         {post.author.avatar}
-    //                     </div>
-    //                     <div>
-    //                         <h3 className="font-semibold text-gray-900">{post.author.name}</h3>
-    //                         <p className="text-sm text-gray-500">{post.author.role} • {post.timestamp}</p>
-    //                     </div>
-    //                 </div>
-    //                 <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-    //                     <MoreHorizontal className="w-5 h-5 text-gray-400" />
-    //                 </button>
-    //             </div>
-
-    //             {/* Post Content */}
-    //             <div className="mb-4">
-    //                 <h2 className="text-xl font-bold text-gray-900 mb-2">{post.title}</h2>
-    //                 <p className="text-gray-700 leading-relaxed">{post.content}</p>
-    //             </div>
-
-    //             {/* Event/Placement Card */}
-    //             {post.event && (
-    //                 <div className="bg-linear-to-r from-blue-50 to-purple-50 rounded-lg p-4 mb-4 border border-blue-200">
-    //                     <div className="flex items-center gap-4 text-sm">
-    //                         <div className="flex items-center gap-2 text-gray-700">
-    //                             <Calendar className="w-4 h-4" />
-    //                             <span>{post.event.date}</span>
-    //                         </div>
-    //                         <div className="flex items-center gap-2 text-gray-700">
-    //                             <MapPin className="w-4 h-4" />
-    //                             <span>{post.event.location}</span>
-    //                         </div>
-    //                         <div className="flex items-center gap-2 text-blue-600 ml-auto font-semibold">
-    //                             <Users className="w-4 h-4" />
-    //                             <span>{post.event.registered} registered</span>
-    //                         </div>
-    //                     </div>
-    //                 </div>
-    //             )}
-
-    //             {post.placement && (
-    //                 <div className="bg-linear-to-r from-green-50 to-emerald-50 rounded-lg p-4 mb-4 border border-green-200">
-    //                     <div className="flex items-center justify-between">
-    //                         <div>
-    //                             <p className="font-semibold text-gray-900">{post.placement.company}</p>
-    //                             <p className="text-sm text-gray-600">{post.placement.role}</p>
-    //                         </div>
-    //                         <div className="text-right">
-    //                             <p className="text-sm text-gray-600">Package</p>
-    //                             <p className="text-lg font-bold text-green-600">{post.placement.ctc}</p>
-    //                         </div>
-    //                     </div>
-    //                 </div>
-    //             )}
-
-    //             {/* Tags */}
-    //             {post.tags && <div className="flex gap-2 mb-4">
-    //                 {post.tags.map(({ tag, idx }: any) => {
-    //                     // Make sure both `tag` and `idx` are valid before using them as keys
-    //                     if (tag && idx !== undefined) {
-    //                         return (
-    //                             <span
-    //                                 key={`${tag}-${idx}`} // Ensure unique key
-    //                                 className={`px-3 py-1 rounded-full text-xs font-medium ${tag === 'Urgent'
-    //                                     ? 'bg-red-100 text-red-700'
-    //                                     : tag === 'Placement'
-    //                                         ? 'bg-green-100 text-green-700'
-    //                                         : 'bg-blue-100 text-blue-700'
-    //                                     }`}
-    //                             >
-    //                                 {tag}
-    //                             </span>
-    //                         );
-    //                     } else {
-    //                         // Optionally return null or a fallback component if `tag` or `idx` are invalid
-    //                         return null;
-    //                     }
-    //                 })}
-    //             </div>}
-
-
-    //             {/* Post Actions */}
-    //             <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-    //                 <button
-    //                     onClick={() => toggleLike(post.id)}
-    //                     className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${post.liked
-    //                         ? 'text-red-500 bg-red-50'
-    //                         : 'text-gray-600 hover:bg-gray-100'
-    //                         }`}
-    //                 >
-    //                     <Heart className={`w-5 h-5 ${post.liked ? 'fill-current' : ''}`} />
-    //                     <span className="font-medium">{post.likes}</span>
-    //                 </button>
-    //                 <button className="flex items-center gap-2 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors">
-    //                     <MessageCircle className="w-5 h-5" />
-    //                     <span className="font-medium">{post.comments}</span>
-    //                 </button>
-    //                 <button className="flex items-center gap-2 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors">
-    //                     <Share2 className="w-5 h-5" />
-    //                     <span className="font-medium">{post.shares}</span>
-    //                 </button>
-    //                 <button className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors">
-    //                     <Bookmark className="w-5 h-5" />
-    //                 </button>
-    //             </div>
-    //         </div>
-    //     </div>
-    // );
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -329,32 +144,26 @@ export default function CommunityPageComponent({ posts, community, isMember, cre
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Main Feed */}
                     <div className="lg:col-span-2 space-y-6">
-                        {/* Create Post Card */}
+
+
                         {isCreator && (
                             <div className="bg-white rounded-xl border border-gray-200 p-4">
                                 <div className="flex gap-3">
                                     <div className="w-10 h-10 rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold">
-                                        YU
+                                        {userInfo.name?.split(" ").map((n: string) => n[0]).join("")}
                                     </div>
-                                    <div className="flex-1">
-                                        <input
-                                            type="text"
-                                            placeholder="Share something with the community..."
-                                            className="w-full px-4 py-3 bg-gray-50 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                                        />
-                                        <div className="flex items-center gap-2 mt-3">
-                                            <button className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium flex items-center gap-2">
-                                                <Plus className="w-4 h-4" />
-                                                Post
-                                            </button>
-                                            <button className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors font-medium">
-                                                Event
-                                            </button>
-                                            <button className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors font-medium">
-                                                Announcement
-                                            </button>
-                                        </div>
-                                    </div>
+                                    <button
+                                        onClick={() => setShowCreatePost(true)}
+                                        className="flex-1 text-left px-4 py-3 bg-gray-50 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100"
+                                    >
+                                        Share something with the community...
+                                    </button>
+                                    <button
+                                        onClick={() => setShowCreatePost(true)}
+                                        className="p-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                    </button>
                                 </div>
                             </div>
                         )}
@@ -387,11 +196,10 @@ export default function CommunityPageComponent({ posts, community, isMember, cre
                             <p className="text-center text-gray-500 mt-12">No posts available in this community.</p>
                         ) : (
                             posts.map((post: any) => (
-                                <PostCard key={post.id} post={post} />
+                                <PostCard key={post.id} post={post} userId={userInfo.id} />
                             ))
                         )}
                     </div>
-
                     {/* Sidebar */}
                     <div className="space-y-6">
                         {/* Quick Info */}
@@ -463,6 +271,20 @@ export default function CommunityPageComponent({ posts, community, isMember, cre
                     </div>
                 </div>
             </div>
+            {showCreatePost && (
+                <CreatePostModal
+                    userInfo={userInfo}
+                    newPost={newPost}
+                    setNewPost={setNewPost}
+                    setShowCreatePost={setShowCreatePost}
+                    handleCreatePost={handleCreatePost}
+                    handleImageUpload={handleImageUpload}
+                    communities={[community]}   // only this community
+                    forceCommunityId={community.id} // fixed
+                />
+            )}
+
         </div>
+
     );
 }

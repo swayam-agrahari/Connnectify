@@ -32,220 +32,6 @@ function handleView(postId: any) {
     redirect(`/posts/${postId}`);
 }
 
-
-
-
-export const CreatePostModal = ({ userInfo,
-    setNewPost, setShowCreatePost, newPost,
-    handleCreatePost, communities, handleImageUpload
-}: any) => {
-    const [postType, setPostType] = useState<"TEXT" | "IMAGE" | "POLL">("TEXT");
-    const [pollOptions, setPollOptions] = useState(["", ""]);
-    const [pollDuration, setPollDuration] = useState(1);
-
-    const updatePollOption = (index: number, value: string) => {
-        const updated = [...pollOptions];
-        updated[index] = value;
-        setPollOptions(updated);
-    };
-
-    const addPollOption = () => setPollOptions([...pollOptions, ""]);
-    const removePollOption = (index: number) =>
-        setPollOptions(pollOptions.filter((_, i) => i !== index));
-
-    const resetForm = () => {
-        setPostType("TEXT");
-        setPollOptions(["", ""]);
-        setPollDuration(1);
-        setNewPost({
-            content: "",
-            visibility: "Public",
-            communityId: null,
-            imageUrl: "",
-            tags: [],
-        });
-    };
-
-    const handleSubmit = async () => {
-        if (postType === "POLL") {
-            console.log("Submitting poll post");
-            handleCreatePost({
-                ...newPost,
-                type: "POLL",
-                poll: {
-                    options: pollOptions.filter((o) => o.trim() !== ""),
-                    duration: pollDuration,
-                },
-            });
-        } else {
-            await handleCreatePost({ ...newPost, type: postType });
-            resetForm();
-        }
-    };
-
-    return (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 p-4 flex items-center justify-center">
-            <div className="bg-white dark:bg-neutral-800 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
-                {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b border-neutral-200 dark:border-neutral-700">
-                    <h3 className="text-lg font-semibold text-neutral-800 dark:text-white">Create Post</h3>
-                    <button
-                        onClick={() => setShowCreatePost(false)}
-                        className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-full transition-colors"
-                    >
-                        <X className="w-5 h-5" />
-                    </button>
-                </div>
-
-                {/* Main Content */}
-                <div className="flex-1 p-4 space-y-4 overflow-y-auto">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-linear-to-br from-blue-500 to-purple-500 flex items-center justify-center text-xl">
-                            {userInfo.profileImageUrl ? (
-                                <Image
-                                    src={userInfo.profileImageUrl}
-                                    alt={userInfo.name}
-                                    width={1024}
-                                    height={1024}
-                                    className="rounded-full"
-                                />
-                            ) : (
-                                <span className="text-white font-semibold">
-                                    {userInfo.name && userInfo.name
-                                        .split(" ")
-                                        .map((n: string) => n[0])
-                                        .join("")
-                                        .toUpperCase()}
-                                </span>
-                            )}
-                        </div>
-                        <div>
-                            <p className="font-medium text-neutral-800 dark:text-white">{userInfo.name}</p>
-                            <select
-                                className="text-sm text-neutral-600 dark:text-neutral-400 bg-transparent border-none outline-none"
-                                value={newPost.visibility}
-                                onChange={(e) => {
-                                    const value = e.target.value;
-                                    setNewPost({
-                                        ...newPost,
-                                        visibility: value,
-                                        communityId: value === "Public" ? null : newPost.communityId,
-                                    });
-                                }}
-                            >
-                                <option value="Public">Public</option>
-                                <option value="Communities Only">Communities Only</option>
-                            </select>
-
-                            {newPost.visibility === "Communities Only" && (
-                                <select
-                                    className="text-sm text-neutral-700 dark:text-neutral-300 bg-transparent border border-neutral-300 dark:border-neutral-700 rounded-lg p-1"
-                                    value={newPost.communityId || ""}
-                                    onChange={(e) =>
-                                        setNewPost({ ...newPost, communityId: e.target.value })
-                                    }
-                                >
-                                    <option value="" disabled>
-                                        Select Community
-                                    </option>
-                                    {communities.map((c: any) => (
-                                        <option key={c.id} value={c.id}>
-                                            {c.name}
-                                        </option>
-                                    ))}
-                                </select>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Text Content */}
-                    <textarea
-                        className="w-full min-h-32 p-3 border border-neutral-200 dark:border-neutral-700 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-neutral-900 dark:text-white"
-                        placeholder="What's on your mind?"
-                        value={newPost.content}
-                        onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
-                    />
-
-                    {/* Upload or Poll Options */}
-                    {postType === "POLL" ? (
-                        <div className="space-y-3">
-                            <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Poll Options</p>
-                            {pollOptions.map((opt, idx) => (
-                                <div key={idx} className="flex items-center gap-2">
-                                    <input
-                                        type="text"
-                                        value={opt}
-                                        onChange={(e) => updatePollOption(idx, e.target.value)}
-                                        placeholder={`Option ${idx + 1}`}
-                                        className="flex-1 p-2 border border-neutral-300 dark:border-neutral-700 rounded-lg dark:bg-neutral-900 dark:text-white"
-                                    />
-                                    {pollOptions.length > 2 && (
-                                        <button
-                                            onClick={() => removePollOption(idx)}
-                                            className="text-red-500 hover:text-red-600"
-                                        >
-                                            <X className="w-4 h-4" />
-                                        </button>
-                                    )}
-                                </div>
-                            ))}
-                            <button
-                                onClick={addPollOption}
-                                className="text-sm text-blue-500 hover:underline"
-                            >
-                                + Add option
-                            </button>
-
-                            <div className="flex items-center gap-2">
-                                <label className="text-sm text-neutral-600 dark:text-neutral-400">Duration:</label>
-                                <select
-                                    className="p-1 border rounded-lg dark:bg-neutral-900 dark:border-neutral-700 dark:text-white"
-                                    value={pollDuration}
-                                    onChange={(e) => setPollDuration(Number(e.target.value))}
-                                >
-                                    <option value={1}>1 day</option>
-                                    <option value={3}>3 days</option>
-                                    <option value={7}>7 days</option>
-                                </select>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-3 gap-2">
-                            <CldUploadButton
-                                className="flex items-center justify-center gap-2 p-3 border-2 border-dashed border-neutral-300 dark:border-neutral-600 rounded-xl hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-                                uploadPreset="connectify_preset"
-                                onSuccess={handleImageUpload}
-                                options={{ maxFiles: 1 }}
-                            >
-                                Images
-                            </CldUploadButton>
-
-                            <button
-                                onClick={() => setPostType("POLL")}
-                                className="flex items-center justify-center gap-2 p-3 border-2 border-dashed rounded-xl transition-colors border-neutral-300 dark:border-neutral-600 hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900/20"
-                            >
-                                <BarChart3 className="w-5 h-5 text-green-500" />
-                                <span className="text-sm font-medium">Poll</span>
-                            </button>
-                        </div>
-                    )}
-                </div>
-
-                {/* Footer */}
-                <div className="p-4 border-t dark:border-neutral-700">
-                    <button
-                        className="w-full py-3 bg-linear-to-r from-blue-500 to-purple-500 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
-                        onClick={handleSubmit}
-                    >
-                        Post
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-
 export const PostCard = ({ post, userId }: { post: any, userId: string }) => {
 
     const [likesCount, setLikesCount] = useState(post.votes?.length || 0);
@@ -283,7 +69,7 @@ export const PostCard = ({ post, userId }: { post: any, userId: string }) => {
                                 alt={post.authorName}
                                 width={1024}
                                 height={1024}
-                                className="rounded-full"
+                                className="rounded-full object-cover w-10 h-10"
                             />
                         ) : (
                             <span className="text-white font-semibold">
@@ -313,14 +99,17 @@ export const PostCard = ({ post, userId }: { post: any, userId: string }) => {
 
             {/* Tags */}
             <div className="flex flex-wrap gap-2 mb-3">
-                {post.tags?.map(({ tag, idx }: any) => (
+                {post.tags?.map((tag: string) => (
                     <span
-                        key={idx}
-                        className="px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-xs font-medium rounded-full"
+                        key={tag}
+                        className="px-3 py-1 bg-blue-50 dark:bg-blue-900/20 
+                   text-blue-600 dark:text-blue-400 text-xs 
+                   font-medium rounded-full"
                     >
                         #{tag}
                     </span>
                 ))}
+
             </div>
 
             {/* Image */}
@@ -330,14 +119,14 @@ export const PostCard = ({ post, userId }: { post: any, userId: string }) => {
                     alt=""
                     width={1024}
                     height={1024}
-                    className="w-full h-full rounded-lg mb-3"
+                    className="w-full h-full rounded-lg object-cover w-10 h-10 mb-3"
                 />
             )}
 
             {/* Poll */}
             {post.type === "POLL" && (
                 <div className="mb-3">
-                    <PollDisplay post={post} votePollAction={voteOnPoll} />
+                    <PollDisplay post={post} votePollAction={voteOnPoll}  />
                 </div>
             )}
 

@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 import NavBar from "./navbar";
 import { cookies } from "next/headers";
-import { getUserDetail } from "./dashboard/action";
+import { getAllUsers, getCommunities, getUserDetail } from "./dashboard/action";
+import { getAllComunities } from "./communities/action";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
 
@@ -28,13 +29,16 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
         redirect("/login");
     }
-      const user = await getUserDetail();
+    const user = await getUserDetail();
+    const allUsers = await getAllUsers();
+    const comm = await getAllComunities();
     return (
 
 
         <>
-            <NavBar  user={user.user}/>
+            <NavBar users={user.user} communities={comm} allUsers={allUsers} />
             {children}
+
         </>
     )
 }

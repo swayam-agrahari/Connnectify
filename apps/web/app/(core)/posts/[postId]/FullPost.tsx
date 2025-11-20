@@ -33,7 +33,7 @@ export default function FullPost({ post, userId }: { post: any, userId: string }
                             alt={post.author.name}
                             width={1024}
                             height={1024}
-                            className="rounded-full"
+                            className="rounded-full object-cover w-10 h-10"
                         />
                     ) : (
                         <span className="text-white font-semibold">

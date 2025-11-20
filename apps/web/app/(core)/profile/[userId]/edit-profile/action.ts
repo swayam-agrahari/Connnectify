@@ -64,3 +64,4 @@ export async function updateUserDetails(updatedData: any) {
         throw error;
     }
 }
+

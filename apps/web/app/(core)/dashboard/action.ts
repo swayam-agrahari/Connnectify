@@ -22,7 +22,7 @@ export async function getCommunities() {
         throw new Error('Failed to fetch communities');
     }
     const comm = await res.json();
-    console.log("Communities data:", comm);
+
     return comm.communities;
 }
 
@@ -30,12 +30,13 @@ export async function getCommunities() {
 export async function getAllPosts() {
     const cookieStore = await cookies();
     const tokenCookie = cookieStore.get("session");
+    const uid = cookieStore.get("uid");
 
-    if (!tokenCookie) {
-        return { success: false, error: "Authentication session not found." };
+    if (!tokenCookie || !uid) {
+        return { success: false, error: "Authentication session or university id not found." };
     }
 
-    const res = await fetch(`http://localhost:3003/api/posts`, {
+    const res = await fetch(`http://localhost:3003/api/posts/${uid.value}/posts`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
@@ -47,12 +48,9 @@ export async function getAllPosts() {
         throw new Error('Failed to fetch posts');
     }
     const postData = await res.json();
-    console.log("Fetched posts:", postData.posts);
 
     const authorIds = [...new Set(postData.posts.map((p: any) => p.authorId))];
     const communityIds = [...new Set(postData.posts.map((p: any) => p.communityId))];
-    // console.log("Author IDs:", authorIds);
-    console.log("Community IDs:", communityIds);
 
     if (communityIds.length === 0) {
         return [""];
@@ -75,8 +73,6 @@ export async function getAllPosts() {
 
     const { users } = await usersRes.json();
     const { communities } = await communitiesRes.json();
-    // console.log("Fetched users for posts:", users);
-    console.log("Fetched communities for posts:", communities);
 
     const userMap = users.reduce((acc: any, user: any) => {
         acc[user.id] = user;
@@ -87,18 +83,14 @@ export async function getAllPosts() {
         acc[comm.id] = comm;
         return acc;
     }, {});
-    // console.log("User Map:", userMap);bbb
-    console.log("Community Map:", communityMap);
-
 
 
     const enrichedPosts: any[] = postData.posts.map((post: any) => ({
         ...post,
-        authorName: userMap[post.authorId]?.username || "Unknown User",
+        authorName: userMap[post.authorId]?.name || "Unknown User",
         authorImage: userMap[post.authorId]?.profileImageUrl,
         communityName: communityMap[post.communityId]?.name || "Public",
     }));
-
 
 
     return enrichedPosts;
@@ -106,14 +98,17 @@ export async function getAllPosts() {
 
 export async function createPost(data: any) {
     const cookieStore = await cookies();
-    console.log("cookie", cookieStore)
     const tokenCookie = cookieStore.get("session");
+    const uid = cookieStore.get("uid");
 
-    if (!tokenCookie) {
-        return { success: false, error: "Authentication session not found." };
+    if (!tokenCookie || !uid) {
+        return { success: false, error: "Authentication session or university id not found." };
     }
 
-    console.log("Creating post with data:", data);
+    const payload = {
+        ...data,
+        universityId: uid.value,
+    };
 
     const res = await fetch(`http://localhost:3003/api/posts`, {
         method: "POST",
@@ -121,16 +116,14 @@ export async function createPost(data: any) {
             "Content-Type": "application/json",
             "Cookie": `session=${tokenCookie.value}`
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
     });
 
-    console.log("Response from create post endpoint:", res);
     if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.error || 'Failed to create post');
     }
     const postData = await res.json();
-    console.log("Created post data:", postData.post[0]);
     revalidatePath("/dashboard");
 }
 
@@ -150,7 +143,6 @@ export async function sendImageToBackend(imageUrl: string) {
         }
 
         const data = await res.json();
-        console.log("📦 Backend response:", data);
 
         return data;
     } catch (error) {
@@ -193,7 +185,6 @@ export async function getUserDetail() {
 
 }
 
-
 export async function voteOnPoll(postId: string, pollOptionId: string) {
     try {
         const cookieStore = await cookies();
@@ -232,3 +223,34 @@ export async function voteOnPoll(postId: string, pollOptionId: string) {
         return { success: false, error: "An unknown error occurred" };
     }
 }
+
+
+export async function getAllUsers() {
+    try {
+
+        const cookieStore = await cookies();
+        const tokenCookie = cookieStore.get("session");
+        const uid = cookieStore.get("uid");
+
+        if (!tokenCookie || !uid) {
+            return { success: false, error: "Authentication session not found." };
+        }
+        const res = await fetch(`http://localhost:3001/api/auth/${uid.value}/all`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "Cookie": `session=${tokenCookie.value}`
+            },
+        });
+
+        if (!res.ok) {
+            throw new Error('Failed to fetch users');
+        }
+        const userData = await res.json();
+        return userData.users;
+    } catch (error) {
+        console.error("Error fetching users:", error);
+        throw error;
+    }
+}
+

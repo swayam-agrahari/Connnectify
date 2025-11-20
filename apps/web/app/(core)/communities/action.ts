@@ -89,7 +89,6 @@ export async function joinLeaveCommunity(communityId: string, isJoining: boolean
     }
 
     const data = await res.json();
-    console.log(`${isJoining ? 'join' : 'leave'} community response`, data);
     revalidatePath('/dashboard');
 }
 
