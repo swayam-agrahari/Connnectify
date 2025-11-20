@@ -28,3 +28,38 @@ export const BRAND = {
   name: 'Connectify',
   tagline: 'Stay connected to your campus.',
 } as const;
+
+
+
+export const PREDEFINED_TAGS = [
+  "Announcement",
+  "Event",
+  "LostAndFound",
+  "Help",
+  "Placement",
+  "Doubt",
+  "Resource",
+  "Achievement",
+  "Update",
+  "Workshop",
+  "Hackathon",
+  "Exam",
+  "General",
+];
+
+
+export const PREDEFINED_COMMUNITY_TAGS = [
+  "Academic",
+  "Technical",
+  "Cultural",
+  "Sports",
+  "Arts",
+  "Clubs",
+  "Career",
+  "Events",
+  "Social",
+  "Support",
+  "Research",
+  "Innovation",
+  "General",
+];

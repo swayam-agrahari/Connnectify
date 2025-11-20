@@ -24,7 +24,16 @@ const universities = [
 ];
 
 export async function GET() {
-  await new Promise((resolve) => setTimeout(resolve, 500));
+  try {
+    const response = await fetch('http://localhost:3002/api/university');
+    if (!response.ok) {
+      throw new Error('Failed to fetch universities from external API');
+    }
+    const externalUniversities = await response.json();
+    return NextResponse.json(externalUniversities);
+  } catch (error) {
+    console.error('Error fetching universities from external API:', error);
+    return NextResponse.json(universities);
 
-  return NextResponse.json(universities);
+  }
 }
