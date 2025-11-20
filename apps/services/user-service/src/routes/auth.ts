@@ -271,7 +271,8 @@ authRouter.get("/details", authMiddleware, async (req: AuthenticatedRequest, res
         const data = await prisma.users.findUnique({
             where: {
                 id: userId
-            }
+            },
+
         })
 
         if (!data) {
@@ -314,7 +315,7 @@ authRouter.post("/details", authMiddleware, async (req: AuthenticatedRequest, re
 })
 
 //find user by id
-authRouter.get("/:userId", async (req: AuthenticatedRequest, res: Response) => {
+authRouter.get("/:userId/details", async (req: AuthenticatedRequest, res: Response) => {
     try {
         const { userId } = req.params;
         console.log("Fetching user for userId:", userId);
@@ -331,7 +332,9 @@ authRouter.get("/:userId", async (req: AuthenticatedRequest, res: Response) => {
                 username: true,
                 profileImageUrl: true,
                 name: true,
-                universityId: true
+                universityId: true,
+                createdAt:true,
+                email:true,
             }
         })
 
@@ -347,7 +350,33 @@ authRouter.get("/:userId", async (req: AuthenticatedRequest, res: Response) => {
 });
 
 
+authRouter.get("/:universityId/all", async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const { universityId } = req.params;
+        console.log("Fetching all users for universityId:", universityId);
+        if (!universityId) {
+            return res.status(400).json({ error: "University ID not provided" });
+        }
 
+        const users = await prisma.users.findMany({
+            where: {
+                universityId: universityId
+            },
+            select: {
+                id: true,
+                username: true,
+                profileImageUrl: true,
+                name: true,
+                universityId: true
+            }
+        });
+
+        return res.status(200).json({ users });
+    } catch (error) {
+        console.log("error fetching users by university id", error);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+});
 
 authRouter.post('/logout', (req, res) => {
     console.log("Logout request received");
