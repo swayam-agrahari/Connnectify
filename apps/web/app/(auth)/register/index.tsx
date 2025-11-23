@@ -32,6 +32,27 @@ export default function RegisterPage() {
     const [pending, startTransition] = useTransition();
     const [errors, setErrors] = useState<Record<string, string[]>>({});
 
+    const collegeEmailRegex = /^[A-Za-z0-9._%+-]+@(?:[A-Za-z0-9-]+\.)+edu$/;
+
+
+    const validateEmail = (email: string) => {
+        // If input is empty → no error
+        if (!email.trim()) {
+            setErrors(prev => ({ ...prev, email: [] }));
+            return;
+        }
+
+        // If invalid college email → show error
+        if (!collegeEmailRegex.test(email)) {
+            setErrors(prev => ({
+                ...prev,
+                email: ["Please use a valid college/university email"],
+            }));
+        } else {
+            // Valid email → clear error
+            setErrors(prev => ({ ...prev, email: [] }));
+        }
+    };
 
     useEffect(() => {
         const fetchUniversities = async () => {
@@ -51,10 +72,22 @@ export default function RegisterPage() {
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
+
+        if (!collegeEmailRegex.test(formdata.email)) {
+            setErrors(prev => ({
+                ...prev,
+                email: ["Please use a valid college/university email"],
+            }));
+            return;
+        }
+
         setIsLoading(true);
-        const formdata = new FormData(e.currentTarget as HTMLFormElement);
+
+        const data = new FormData(e.currentTarget as HTMLFormElement);
+
         startTransition(async () => {
-            const res = await registerAction(formdata);
+            const res = await registerAction(data);
+
             if (res?.errors) {
                 if ('message' in res.errors) {
                     setErrors({ general: res.errors.message });
@@ -64,8 +97,8 @@ export default function RegisterPage() {
             }
             setIsLoading(false);
         });
+    }
 
-    };
 
     return (
         <div className="min-h-screen w-full flex items-center justify-center p-4 bg-gradient-to-br from-neutral-50 via-neutral-100 to-neutral-200 dark:from-neutral-900 dark:via-neutral-800 dark:to-neutral-900">
@@ -116,9 +149,22 @@ export default function RegisterPage() {
                                 placeholder="you@university.edu"
                                 icon={Mail}
                                 value={formdata.email}
-                                onChange={(e) => setFormdata({ ...formdata, email: e.target.value })}
-                                name='email'
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    setFormdata({ ...formdata, email: value });
+                                    if (!value.trim()) {
+                                        setErrors(prev => ({ ...prev, email: [] }));
+                                    }
+                                }}
+                                onBlur={(e) => validateEmail(e.target.value)}
+                                name="email"
                             />
+                            {errors.email && errors.email.length > 0 && (
+                                <p className="mt-1 text-sm text-red-500">
+                                    {errors.email[0]}
+                                </p>
+                            )}
+
                         </div>
 
                         <div>

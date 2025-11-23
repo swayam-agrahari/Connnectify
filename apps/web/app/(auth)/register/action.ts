@@ -18,7 +18,7 @@ export async function registerAction(formData: FormData) {
     }
 
 
-    const user = await fetch(`http://localhost:3001/api/auth/register`, {
+    const user = await fetch(`${process.env.NEXT_PUBLIC_USER_SERVICE}/api/auth/register`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",

@@ -13,7 +13,7 @@ export default async function Login() {
     return <LoginPage />;
   }
 
-  const res = await fetch(`http://localhost:3001/api/auth/validate`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_USER_SERVICE}/api/auth/validate`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",

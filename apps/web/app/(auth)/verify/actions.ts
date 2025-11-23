@@ -20,7 +20,7 @@ export async function verifyAction(formData: any) {
     }
 
     // 2. Call your *new* user-service endpoint
-    const res = await fetch(`http://localhost:3001/api/auth/verify`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_USER_SERVICE}/api/auth/verify`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
