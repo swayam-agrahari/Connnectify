@@ -19,3 +19,13 @@ export const LoginSchema = zod.object({
     password: zod.string().min(6, "Password must be at least 6 characters long").max(8, "Password must be at most 8 characters long"),
     isEmailVerified: zod.boolean("Email is not verified").optional(),
 });
+
+export const RequestPasswordResetSchema = zod.object({
+    email: zod.string().email(),
+});
+
+export const ResetPasswordSchema = zod.object({
+    email: zod.string().email(),
+    code: zod.string().length(6, "Code must be 6 digits"),
+    newPassword: zod.string().min(8, "Password must be at least 8 characters"),
+});

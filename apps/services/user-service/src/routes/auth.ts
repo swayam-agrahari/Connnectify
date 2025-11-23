@@ -1,5 +1,5 @@
 import express, { type Response } from "express";
-import { LoginSchema, RegisterSchema } from "../../utils/zod-schema.ts";
+import { LoginSchema, RegisterSchema, RequestPasswordResetSchema, ResetPasswordSchema } from "../../utils/zod-schema.ts";
 import { hash, compare } from "bcrypt";
 import { randomInt } from 'crypto';
 import prisma from "../generated/index.ts";
@@ -161,7 +161,7 @@ authRouter.post("/login", async (req, res) => {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: "lax", // or "none" if cross-origin with https
-            maxAge: 7 * 24 * 60 * 60 * 1000,
+            maxAge: 7 * 24 * 60 * 60 * 1000, //7 days
             path: "/",
             domain: "localhost", // optional for cross-subdomain
         });
@@ -210,6 +210,154 @@ authRouter.post('/verify', authMiddleware, async (req: AuthenticatedRequest, res
     return res.status(200).json({ message: "Email verified successfully" });
 });
 
+authRouter.post("/request-password-reset", async (req, res) => {
+    const parsedResponse = RequestPasswordResetSchema.safeParse(req.body);
+
+    if (!parsedResponse.success) {
+        return res.status(400).json({
+            message: "Invalid email format",
+            errors: parsedResponse.error.flatten().fieldErrors,
+        });
+    }
+
+    const { email } = parsedResponse.data;
+
+    try {
+        const user = await prisma.users.findUnique({
+            where: { email },
+        });
+
+        if (user && user.isEmailVerified) {
+            const verificationCode = randomInt(100000, 999999).toString();
+            const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+            await prisma.users.update({
+                where: { email: user.email },
+                data: {
+                    verificationCode: verificationCode,
+                    verificationCodeExpiresAt: expiresAt,
+                },
+            });
+
+            console.log(`Password reset code for ${user.email} is: ${verificationCode}`);
+            /*
+            sendEmail(
+              user.email,
+              "Your Password Reset Code - Connectify",
+              `...`
+            ).catch(console.error);
+            */
+        }
+
+        return res.status(200).json({
+            message: "If your email is registered and verified, you will receive a code."
+        });
+
+    } catch (error) {
+        console.log("Error in /request-password-reset:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+});
+
+authRouter.post("/request-password-reset", async (req, res) => {
+    const parsedResponse = RequestPasswordResetSchema.safeParse(req.body);
+
+    if (!parsedResponse.success) {
+        return res.status(400).json({
+            message: "Invalid email format",
+            errors: parsedResponse.error.flatten().fieldErrors,
+        });
+    }
+
+    const { email } = parsedResponse.data;
+
+    try {
+        const user = await prisma.users.findUnique({
+            where: { email },
+        });
+
+        if (user && user.isEmailVerified) {
+            const verificationCode = randomInt(100000, 999999).toString();
+            const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+            await prisma.users.update({
+                where: { email: user.email },
+                data: {
+                    verificationCode: verificationCode,
+                    verificationCodeExpiresAt: expiresAt,
+                },
+            });
+
+            console.log(`Password reset code for ${user.email} is: ${verificationCode}`);
+            /*
+            sendEmail(
+              user.email,
+              "Your Password Reset Code - Connectify",
+              `...`
+            ).catch(console.error);
+            */
+        }
+
+        return res.status(200).json({
+            message: "If your email is registered and verified, you will receive a code."
+        });
+
+    } catch (error) {
+        console.log("Error in /request-password-reset:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+});
+
+
+
+
+authRouter.post("/reset-password", async (req, res) => {
+    const parsedResponse = ResetPasswordSchema.safeParse(req.body);
+
+    if (!parsedResponse.success) {
+        return res.status(400).json({
+            message: "Invalid request data",
+            errors: parsedResponse.error.flatten().fieldErrors,
+        });
+    }
+
+    const { email, code, newPassword } = parsedResponse.data;
+
+    try {
+        const user = await prisma.users.findUnique({
+            where: { email },
+        });
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        if (user.verificationCode !== code) {
+            return res.status(400).json({ message: "Invalid verification code." });
+        }
+
+        if (new Date() > user.verificationCodeExpiresAt!) {
+            return res.status(400).json({ message: "Verification code has expired." });
+        }
+
+        const hashedPassword = await hash(newPassword, 10);
+
+        await prisma.users.update({
+            where: { email: user.email },
+            data: {
+                password: hashedPassword,
+                verificationCode: null,         // Clear the code so it can't be reused
+                verificationCodeExpiresAt: null, // Clear the expiry
+            },
+        });
+
+        return res.status(200).json({ message: "Password reset successfully." });
+
+    } catch (error) {
+        console.log("Error in /reset-password:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+});
 
 authRouter.post('/me', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
     console.log("in hereee")
@@ -333,8 +481,8 @@ authRouter.get("/:userId/details", async (req: AuthenticatedRequest, res: Respon
                 profileImageUrl: true,
                 name: true,
                 universityId: true,
-                createdAt:true,
-                email:true,
+                createdAt: true,
+                email: true,
             }
         })
 

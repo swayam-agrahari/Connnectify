@@ -7,14 +7,16 @@
     "dev": "nodemon --exec tsx src/index.ts"
   },
   "prisma": {
-  "seed": "tsx prisma/seed.ts"
-},
+    "seed": "tsx prisma/seed.ts"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@types/express": "^5.0.5",
     "dotenv": "^16.0.3",
+    "express": "^5.1.0",
     "nodemon": "^3.1.11",
     "prisma": "^6.18.0"
   },

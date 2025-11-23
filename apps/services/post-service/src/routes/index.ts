@@ -111,18 +111,49 @@ postRouter.get("/:universityId/posts", authMiddleware, async (req: Authenticated
 });
 
 
-//get all posts for a community
-postRouter.get("/:communityId/posts/community", authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+//get all posts for a community by creator id
+postRouter.post("/community/posts", authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const { communityId } = req.params;
+        const { creatorId } = req.body;
 
-        if (!communityId) {
-            return res.status(401).json({ error: "Community id not provided" });
+        if (!creatorId) {
+            return res.status(401).json({ error: "Creator id not provided" });
         }
 
         const posts = await prisma.post.findMany({
             where: {
-                communityId: communityId
+                authorId: creatorId
+            },
+            orderBy: { createdAt: 'desc' },
+            include: {
+                pollOptions: true,
+                _count: true,
+                votes: true,
+                comments: true,
+
+            }
+        })
+
+        res.status(200).json({ posts });
+    } catch (error) {
+        console.error("Error fetching posts:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+//get all mentions (posts not by the creator)
+postRouter.post("/community/mentions", authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const { creatorId, communityId } = req.body;
+
+        if (!creatorId || !communityId) {
+            return res.status(401).json({ error: "Creator id or Community id not provided" });
+        }
+
+        const posts = await prisma.post.findMany({
+            where: {
+                communityId: communityId,
+                authorId: { not: creatorId }
             },
             orderBy: { createdAt: 'desc' },
             include: {
@@ -256,7 +287,7 @@ postRouter.post("/", authMiddleware, async (req: AuthenticatedRequest, res: Resp
         });
         if (parsedResponse.data.poll?.options && parsedResponse.data.type === 'POLL') {
             console.log("Creating poll options");
-            for (const option of parsedResponse.data.poll.options.map((text) => ({ text }))) {
+            for (const option of parsedResponse.data.poll.options.map((text: any) => ({ text }))) {
                 await prisma.pollOption.create({
                     data: {
                         text: option.text,
