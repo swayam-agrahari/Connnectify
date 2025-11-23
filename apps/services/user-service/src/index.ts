@@ -1,5 +1,5 @@
 import express from "express"
-import { authRouter } from "./routes/auth.ts";
+import { authRouter } from "./routes/auth.js";
 import cookieParser from "cookie-parser";
 import "dotenv/config";
 import cors from "cors";
