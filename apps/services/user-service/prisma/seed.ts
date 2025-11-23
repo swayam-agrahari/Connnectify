@@ -1,4 +1,4 @@
-import prisma from '../src/generated/index.ts';
+import prisma from '../src/routes/prisma.ts';
 import { faker } from '@faker-js/faker';
 import bcrypt from 'bcrypt'; // Assuming you might need hashed passwords
 
