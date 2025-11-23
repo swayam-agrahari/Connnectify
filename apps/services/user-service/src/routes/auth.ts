@@ -114,8 +114,6 @@ authRouter.post("/register", async (req, res) => {
 
 });
 
-
-
 authRouter.post("/login", async (req, res) => {
 
     const parsedResponse = LoginSchema.safeParse(req.body);
@@ -259,58 +257,6 @@ authRouter.post("/request-password-reset", async (req, res) => {
     }
 });
 
-authRouter.post("/request-password-reset", async (req, res) => {
-    const parsedResponse = RequestPasswordResetSchema.safeParse(req.body);
-
-    if (!parsedResponse.success) {
-        return res.status(400).json({
-            message: "Invalid email format",
-            errors: parsedResponse.error.flatten().fieldErrors,
-        });
-    }
-
-    const { email } = parsedResponse.data;
-
-    try {
-        const user = await prisma.users.findUnique({
-            where: { email },
-        });
-
-        if (user && user.isEmailVerified) {
-            const verificationCode = randomInt(100000, 999999).toString();
-            const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-
-            await prisma.users.update({
-                where: { email: user.email },
-                data: {
-                    verificationCode: verificationCode,
-                    verificationCodeExpiresAt: expiresAt,
-                },
-            });
-
-            console.log(`Password reset code for ${user.email} is: ${verificationCode}`);
-            /*
-            sendEmail(
-              user.email,
-              "Your Password Reset Code - Connectify",
-              `...`
-            ).catch(console.error);
-            */
-        }
-
-        return res.status(200).json({
-            message: "If your email is registered and verified, you will receive a code."
-        });
-
-    } catch (error) {
-        console.log("Error in /request-password-reset:", error);
-        return res.status(500).json({ message: "Internal server error" });
-    }
-});
-
-
-
-
 authRouter.post("/reset-password", async (req, res) => {
     const parsedResponse = ResetPasswordSchema.safeParse(req.body);
 
@@ -346,8 +292,8 @@ authRouter.post("/reset-password", async (req, res) => {
             where: { email: user.email },
             data: {
                 password: hashedPassword,
-                verificationCode: null,         // Clear the code so it can't be reused
-                verificationCodeExpiresAt: null, // Clear the expiry
+                verificationCode: null,         
+                verificationCodeExpiresAt: null, 
             },
         });
 
@@ -402,11 +348,6 @@ authRouter.post("/bulk", async (req, res) => {
     });
 
     res.json({ users });
-});
-
-
-authRouter.get("/test", (req, res) => {
-    res.json({ message: "User service test endpoint working!" });
 });
 
 authRouter.get("/details", authMiddleware, async (req: AuthenticatedRequest, res) => {
@@ -528,7 +469,7 @@ authRouter.get("/:universityId/all", async (req: AuthenticatedRequest, res: Resp
 
 authRouter.post('/logout', (req, res) => {
     console.log("Logout request received");
-    // Clear the cookie (name must match what you set when logging in)
+
     res.clearCookie('token', {
         httpOnly: true,
         secure: false,   // set true if using HTTPS in production
