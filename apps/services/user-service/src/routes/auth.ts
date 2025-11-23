@@ -4,8 +4,8 @@ import { hash, compare } from "bcrypt";
 import { randomInt } from 'crypto';
 import prisma from "../generated/index.js";
 import jwt from "jsonwebtoken";
-import { sendEmail } from "@/utils/sendEmail.js";
-import { authMiddleware, type AuthenticatedRequest } from "@/utils/authMiddleware.js";
+import { sendEmail } from "../../utils/sendEmail.js";
+import { authMiddleware, type AuthenticatedRequest } from "../../utils/authMiddleware.js";
 
 export const authRouter = express.Router();
 

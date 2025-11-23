@@ -4,6 +4,7 @@
     "module": "nodenext",
     "target": "esnext",
     "types": [],
+    "outDir": "dist",
 
     "paths": {
       "@/prisma/*": ["./src/generated/*"],
