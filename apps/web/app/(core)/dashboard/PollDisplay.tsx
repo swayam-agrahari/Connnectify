@@ -76,7 +76,7 @@ export default function PollDisplay({
                                 onClick={() => handleVote(opt.id)}
                                 className={`relative w-full p-4 rounded-xl text-left transition-all duration-300 overflow-hidden
                                     ${isUserPick
-                                        ? "bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30 border-2 border-blue-400 dark:border-blue-500 shadow-lg shadow-blue-500/20"
+                                        ? "bg-linear-to-r from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30 border-2 border-blue-400 dark:border-blue-500 shadow-lg shadow-blue-500/20"
                                         : "bg-white/50 dark:bg-black/20 backdrop-blur-sm border border-neutral-200/50 dark:border-neutral-700/50 hover:bg-white dark:hover:bg-black/30 hover:border-blue-300 dark:hover:border-blue-700"
                                     }
                                     ${isExpired ? "cursor-not-allowed opacity-60" : "cursor-pointer"}
@@ -104,13 +104,13 @@ export default function PollDisplay({
                                             animate={{ width: `${percent}%` }}
                                             transition={{ duration: 0.8, ease: "easeOut" }}
                                             className={`absolute inset-y-0 left-0 rounded-full ${isUserPick
-                                                    ? 'bg-gradient-to-r from-blue-500 to-cyan-500'
-                                                    : 'bg-gradient-to-r from-blue-400 to-cyan-400'
+                                                    ? 'bg-linear-to-r from-blue-500 to-cyan-500'
+                                                    : 'bg-linear-to-r from-blue-400 to-cyan-400'
                                                 }`}
                                         />
                                         {isUserPick && (
                                             <motion.div
-                                                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                                                className="absolute inset-0 bg-linear-to-r from-transparent via-white/30 to-transparent"
                                                 animate={{ x: ['-100%', '200%'] }}
                                                 transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
                                             />
@@ -150,7 +150,7 @@ export default function PollDisplay({
             <motion.div
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-red-100 to-orange-100 dark:from-red-900/30 dark:to-orange-900/30 text-red-700 dark:text-red-300 text-xs font-bold border border-red-300 dark:border-red-700/50 shadow-lg"
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-linear-to-r from-red-100 to-orange-100 dark:from-red-900/30 dark:to-orange-900/30 text-red-700 dark:text-red-300 text-xs font-bold border border-red-300 dark:border-red-700/50 shadow-lg"
             >
                 <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
                 Poll Closed
@@ -170,7 +170,7 @@ export default function PollDisplay({
                             transition={{ delay: idx * 0.1 }}
                             className={`relative w-full p-4 rounded-xl overflow-hidden
                                 ${isUserPick
-                                    ? "bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30 border-2 border-blue-400 dark:border-blue-500"
+                                    ? "bg-linear-to-r from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30 border-2 border-blue-400 dark:border-blue-500"
                                     : "bg-white/50 dark:bg-black/20 backdrop-blur-sm border border-neutral-200/50 dark:border-neutral-700/50"
                                 }
                             `}
@@ -187,7 +187,7 @@ export default function PollDisplay({
                                             </span>
                                         )}
                                         {isLeading && opt.voteCount > 0 && (
-                                            <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 text-white text-xs font-bold shadow-lg">
+                                            <span className="px-2 py-0.5 rounded-full bg-linear-to-r from-amber-400 to-orange-500 text-white text-xs font-bold shadow-lg">
                                                 Leading
                                             </span>
                                         )}
@@ -200,10 +200,10 @@ export default function PollDisplay({
                                         animate={{ width: `${percent}%` }}
                                         transition={{ duration: 1, ease: "easeOut" }}
                                         className={`absolute inset-y-0 left-0 rounded-full ${isLeading && opt.voteCount > 0
-                                                ? 'bg-gradient-to-r from-amber-400 to-orange-500'
+                                                ? 'bg-linear-to-r from-amber-400 to-orange-500'
                                                 : isUserPick
-                                                    ? 'bg-gradient-to-r from-blue-500 to-cyan-500'
-                                                    : 'bg-gradient-to-r from-neutral-400 to-neutral-500'
+                                                    ? 'bg-linear-to-r from-blue-500 to-cyan-500'
+                                                    : 'bg-linear-to-r from-neutral-400 to-neutral-500'
                                             }`}
                                     />
                                 </div>
