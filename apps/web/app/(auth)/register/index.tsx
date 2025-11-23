@@ -73,7 +73,7 @@ export default function RegisterPage() {
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
 
-        if (!collegeEmailRegex.test(formdata.email)) {
+        if (!collegeEmailRegex.test(formdata.email as string)) {
             setErrors(prev => ({
                 ...prev,
                 email: ["Please use a valid college/university email"],
