@@ -85,18 +85,26 @@ export default function RegisterPage() {
 
         const data = new FormData(e.currentTarget as HTMLFormElement);
 
-        startTransition(async () => {
-            const res = await registerAction(data);
+startTransition(async () => {
+    const res = await registerAction(data);
+    const anyRes = res as any;
 
-            if (res?.errors) {
-                if ('message' in res.errors) {
-                    setErrors({ general: res.errors.message });
-                } else {
-                    setErrors(res.errors);
-                }
+    if (anyRes?.errors) {
+        if ('message' in anyRes.errors) {
+            setErrors({ general: anyRes.errors.message });
+        } else {
+            
+            if ('errors' in anyRes) {
+                setErrors(anyRes.errors);
+            } 
+            
+            else if ('error' in anyRes) {
+                setErrors({ general: anyRes.error }); 
             }
-            setIsLoading(false);
-        });
+        }
+    }
+    setIsLoading(false);
+});
     }
 
 
