@@ -22,8 +22,6 @@ app.get("/", (req, res) => {
   res.send("User Service is running")
 })
 
-// app.listen(PORT, () => {
-//   console.log(`User Service is running on port ${PORT}`)
-// })
-
-export default app;
+app.listen(PORT, () => {
+  console.log(`User Service is running on port ${PORT}`)
+})

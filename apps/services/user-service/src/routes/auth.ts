@@ -1,11 +1,11 @@
 import express, { type Response } from "express";
-import { LoginSchema, RegisterSchema, RequestPasswordResetSchema, ResetPasswordSchema } from "../../utils/zod-schema.js";
+import { LoginSchema, RegisterSchema, RequestPasswordResetSchema, ResetPasswordSchema } from "../utils/zod-schema.js";
 import { hash, compare } from "bcrypt";
 import { randomInt } from 'crypto';
-import prisma from "./prisma.js";
+import { prisma } from "./prisma.js";
 import jwt from "jsonwebtoken";
-import { sendEmail } from "../../utils/sendEmail.js";
-import { authMiddleware, type AuthenticatedRequest } from "../../utils/authMiddleware.js";
+import { sendEmail } from "../utils/sendEmail.js";
+import { authMiddleware, type AuthenticatedRequest } from "../utils/authMiddleware.js";
 
 export const authRouter = express.Router();
 
