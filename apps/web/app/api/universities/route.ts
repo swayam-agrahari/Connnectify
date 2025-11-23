@@ -25,7 +25,7 @@ const universities = [
 
 export async function GET() {
   try {
-    const response = await fetch('http://localhost:3002/api/university');
+    const response = await fetch(`${process.env.NEXT_PUBLIC_COMMUNITY_SERVICE}/api/university`);
     if (!response.ok) {
       throw new Error('Failed to fetch universities from external API');
     }
