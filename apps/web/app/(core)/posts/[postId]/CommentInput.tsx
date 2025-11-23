@@ -12,7 +12,7 @@ export default function CommentInput({ postId, replyTo, cancelReply }: { postId:
         setLoading(true);
 
         try {
-            const res = await fetch(`http://localhost:3003/api/posts/${postId}/comments`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_POST_SERVICE}/api/posts/${postId}/comments`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

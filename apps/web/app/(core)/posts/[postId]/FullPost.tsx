@@ -8,6 +8,7 @@ import PollDisplay from "../../dashboard/PollDisplay";
 import { voteOnPoll } from "../../dashboard/action";
 import { Heart, MessageSquare } from "lucide-react";
 import { useState } from "react";
+import { userInfo } from "os";
 
 export default function FullPost({ post, userId }: { post: any, userId: string }) {
     const [isLiked, setIsLiked] = useState(post.votes.some((like: any) => like.userId === userId));
@@ -36,13 +37,13 @@ export default function FullPost({ post, userId }: { post: any, userId: string }
                             className="rounded-full object-cover w-10 h-10"
                         />
                     ) : (
-                        <span className="text-white font-semibold">
-                            {post.authorName && post.authorName
-                                .split(" ")
-                                .map((n: string) => n[0])
-                                .join("")
-                                .toUpperCase()}
-                        </span>
+                        <Image
+                            src={post.author.profileImageUrl}
+                            alt={post.author.name}
+                            width={1024}
+                            height={1024}
+                            className="rounded-full object-cover w-10 h-10"
+                        />
                     )}
                 </div>
                 <div>
@@ -70,7 +71,7 @@ export default function FullPost({ post, userId }: { post: any, userId: string }
                     className="rounded-lg w-full max-h-[500px] object-cover"
                 />
             )}
-            
+
             {/* Poll Section */}
             {post.type === "POLL" && post.pollOptions?.length > 0 && (
                 <div className="mt-4">

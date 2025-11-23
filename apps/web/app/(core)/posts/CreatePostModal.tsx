@@ -133,13 +133,13 @@ export const CreatePostModal = ({
                                     className="rounded-full object-cover w-10 h-10"
                                 />
                             ) : (
-                                <span className="text-white font-semibold">
-                                    {userInfo.name
-                                        .split(" ")
-                                        .map((n: string) => n[0])
-                                        .join("")
-                                        .toUpperCase()}
-                                </span>
+                                <Image
+                                    src={"/avatar.jpg"}
+                                    alt={userInfo.name}
+                                    width={1024}
+                                    height={1024}
+                                    className="rounded-full object-cover w-10 h-10"
+                                />
                             )}
                         </div>
 

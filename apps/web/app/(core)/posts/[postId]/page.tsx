@@ -13,7 +13,7 @@ export default async function PostPage(props: { params: Promise<{ postId: string
 
     const params = await props.params;
 
-    const userIdRes = await fetch("http://localhost:3001/api/auth/me", {
+    const userIdRes = await fetch(`${process.env.NEXT_PUBLIC_USER_SERVICE}/api/auth/me`, {
         credentials: "include",
         method: "POST",
         headers: {
