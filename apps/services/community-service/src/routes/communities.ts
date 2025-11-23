@@ -1,6 +1,6 @@
 import express, { type Request, type Response } from "express";
-import prisma from "@/prisma/index.js";
-import { communityMiddleware, type AuthenticatedRequest } from "@/utils/communityMiddleware";
+import { prisma } from "./prisma.js";
+import { communityMiddleware, type AuthenticatedRequest } from "../utils/communityMiddleware";
 
 export const communityRouter = express.Router();
 

@@ -1,5 +1,6 @@
 import express, { type Request, type Response } from "express";
-import prisma from "@/prisma/index.js";
+import { prisma } from "./prisma";
+
 
 
 export const universityRouter = express.Router();

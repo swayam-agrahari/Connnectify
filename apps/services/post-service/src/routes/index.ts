@@ -1,11 +1,9 @@
 import express, { type Request, type Response } from 'express';
-import { PrismaClient } from "../generated/prisma/client";
-import { createCommentSchema, createPostSchema, voteSchema } from '@/utils/schema';
-import { authMiddleware, type AuthenticatedRequest } from '@/utils/authMiddleware';
+import { prisma } from "./prisma.js";
+import { createCommentSchema, createPostSchema, voteSchema } from '../utils/schema';
+import { authMiddleware, type AuthenticatedRequest } from '../utils/authMiddleware';
 
 export const postRouter = express.Router();
-
-const prisma = new PrismaClient();
 
 //get all posts
 postRouter.get("/", authMiddleware, async (req: AuthenticatedRequest, res: Response) => {

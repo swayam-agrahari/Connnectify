@@ -1,20 +1,16 @@
 import express from "express"
-import { PrismaClient } from "@/src/generated/prisma/client.js";
-import { communityRouter } from "@/src/routes/communities";
+import { communityRouter } from "../src/routes/communities";
 import cookieParser from "cookie-parser";
 import "dotenv/config";
 import cors from "cors";
 import { universityRouter } from "./routes/university";
 
-
-const prisma = new PrismaClient();
-
 const app = express()
 const PORT = process.env.PORT || 3002
 
 app.use(cors({
-  origin: "http://localhost:3000", // The origin of your frontend
-  credentials: true, // This is the crucial part
+  origin: process.env.FRONTEND_URL || "http://localhost:3000",
+  credentials: true,
 }));
 
 app.use(cookieParser());
