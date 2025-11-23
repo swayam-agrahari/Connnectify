@@ -139,8 +139,10 @@ export default function ProfilePage({ initialUserData, initialPosts, userId, myU
                     {/* Avatar */}
                     <div className="absolute -top-20 left-0">
                         <div className="relative">
-                            <img
-                                src={user.avatarUrl}
+                            <Image
+                                width={1920}
+                                height={1920}
+                                src={user.avatarUrl ? user.avatarUrl : '/avatar.jpg'}
                                 alt={user.name}
                                 className="w-40 h-40 rounded-full border-4 border-white shadow-xl object-cover"
                             />

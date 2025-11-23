@@ -10,7 +10,7 @@ export async function getUserDetails() {
         if (!tokenCookie) {
             return { success: false, error: "Authentication session not found." };
         }
-        const res = await fetch("http://localhost:3001/api/auth/details", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_USER_SERVICE}/api/auth/details`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -42,7 +42,7 @@ export async function updateUserDetails(updatedData: any) {
             return { success: false, error: "Authentication session not found." };
         }
 
-        const res = await fetch("http://localhost:3001/api/auth/details", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_USER_SERVICE}/api/auth/details`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

@@ -79,7 +79,7 @@ const ConnectifyProfile = ({ initialUserData }: { initialUserData: any }) => {
     };
 
     const handleLogout = async () => {
-        await fetch('http://localhost:3001/api/auth/logout', { method: 'POST', credentials: 'include' });
+        await fetch(`${process.env.NEXT_PUBLIC_USER_SERVICE}/api/auth/logout`, { method: 'POST', credentials: 'include' });
         window.location.href = '/login';
     };
 
