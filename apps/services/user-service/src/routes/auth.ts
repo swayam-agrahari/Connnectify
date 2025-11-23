@@ -1,11 +1,11 @@
 import express, { type Response } from "express";
-import { LoginSchema, RegisterSchema, RequestPasswordResetSchema, ResetPasswordSchema } from "../../utils/zod-schema.ts";
+import { LoginSchema, RegisterSchema, RequestPasswordResetSchema, ResetPasswordSchema } from "../../utils/zod-schema.js";
 import { hash, compare } from "bcrypt";
 import { randomInt } from 'crypto';
-import prisma from "../generated/index.ts";
+import prisma from "../generated/index.js";
 import jwt from "jsonwebtoken";
-import { sendEmail } from "@/utils/sendEmail.ts";
-import { authMiddleware, type AuthenticatedRequest } from "@/utils/authMiddleware.ts";
+import { sendEmail } from "@/utils/sendEmail.js";
+import { authMiddleware, type AuthenticatedRequest } from "@/utils/authMiddleware.js";
 
 export const authRouter = express.Router();
 
@@ -292,8 +292,8 @@ authRouter.post("/reset-password", async (req, res) => {
             where: { email: user.email },
             data: {
                 password: hashedPassword,
-                verificationCode: null,         
-                verificationCodeExpiresAt: null, 
+                verificationCode: null,
+                verificationCodeExpiresAt: null,
             },
         });
 
