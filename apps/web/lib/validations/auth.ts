@@ -11,16 +11,36 @@ export const loginSchema = zod.object({
     .min(8, 'Password must be at least 8 characters'),
 });
 
+
 export const registerSchema = zod.object({
-  email: zod.email("Invalid email address"),
-  username: zod.string().min(3, "Username must be at least 3 characters long").max(30, "Username must be at most 30 characters long"),
-  password: zod.string().min(6, "Password must be at least 6 characters long").max(8, "Password must be at most 8 characters long"),
+  email: zod.string().email("Invalid email address"),
 
-  name: zod.string().min(1, "Name must be at least 1 character long").max(100, "Name must be at most 100 characters long").optional(),
-  profileImageUrl: zod.url("Not a url").optional(),
+  username: zod
+    .string()
+    .min(3, "Username must be at least 3 characters long")
+    .max(30, "Username must be at most 30 characters long"),
 
-  universityId: zod.string().min(1, "University ID must be at least 1 character long").max(50, "University ID must be at most 50 characters long"),
+  password: zod
+    .string()
+    .min(6, "Password must be at least 6 characters long")
+    .max(8, "Password must be at most 8 characters long"),
+
+  name: zod
+    .string()
+    .min(1, "Name must be at least 1 character long")
+    .max(100, "Name must be at most 100 characters long")
+    .optional(),
+
+  profileImageUrl: zod.string().url("Not a url").optional(),
+
+  universityId: zod
+    .string()
+    .min(1, "University ID must be at least 1 character long")
+    .max(50, "University ID must be at most 50 characters long"),
 });
+
+
+
 
 export const verifyEmailSchema = zod.object({
   code: zod
