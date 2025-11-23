@@ -60,7 +60,7 @@ export default function NavBar({ users, communities, allUsers }: { users: any, c
         router.push('/communities');
     };
 
-    const handleClickProfile = (userId:string) => {
+    const handleClickProfile = (userId: string) => {
         setActive('profile');
         router.push(`/profile/${userId}`);
     }
@@ -134,7 +134,7 @@ export default function NavBar({ users, communities, allUsers }: { users: any, c
                                        cursor-pointer transition-all"
                                                 >
                                                     <Image
-                                                        src={user.profileImageUrl}
+                                                        src={user.profileImageUrl ? user.profileImageUrl : '/avatar.jpg'}
                                                         alt={user.name}
                                                         width={40}
                                                         height={40}
@@ -191,23 +191,15 @@ export default function NavBar({ users, communities, allUsers }: { users: any, c
 
                         <div className="w-8 h-8 rounded-full bg-linear-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold text-sm cursor-pointer" onClick={() => handleClickProfile(users.id)}>
                             <div className="w-10 h-10 rounded-full bg-linear-to-br from-blue-500 to-purple-500 flex items-center justify-center text-xl">
-                                {users.profileImageUrl ? (
-                                    <Image
-                                        src={users.profileImageUrl}
-                                        alt={users.name}
-                                        width={1024}
-                                        height={1024}
-                                        className="rounded-full object-cover w-10 h-10"
-                                    />
-                                ) : (
-                                    <span className="text-white font-semibold">
-                                        {users.name && users.name
-                                            .split(" ")
-                                            .map((n: string) => n[0])
-                                            .join("")
-                                            .toUpperCase()}
-                                    </span>
-                                )}
+
+                                <Image
+                                    src={users.profileImageUrl ? users.profileImageUrl : '/avatar.jpg'}
+                                    alt={users.name}
+                                    width={1024}
+                                    height={1024}
+                                    className="rounded-full object-cover w-10 h-10 "
+                                />
+
                             </div>
                         </div>
                     </div>

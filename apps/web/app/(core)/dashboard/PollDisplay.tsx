@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { expireTime, timeAgo } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
+import { Clock, TrendingUp } from "lucide-react";
 
 export default function PollDisplay({
     post,
@@ -11,13 +13,11 @@ export default function PollDisplay({
     votePollAction: (postId: string, optionId: string) => Promise<any>;
 }) {
     const isExpired = post.expiresAt && new Date(post.expiresAt) < new Date();
-    // Local state to track current vote
     const [userVote, setUserVote] = useState<string | null>(post.userVoteOptionId || null);
     const [voting, setVoting] = useState(false);
     const [pollOptions, setPollOptions] = useState(post.pollOptions);
 
     const totalVotes = pollOptions.reduce((sum: number, opt: any) => sum + opt.voteCount, 0);
-
 
     const handleVote = async (optionId: string) => {
         if (isExpired) {
@@ -25,7 +25,6 @@ export default function PollDisplay({
             return;
         }
 
-        // ⛔ Prevent voting again on same option — do nothing
         if (optionId === userVote) {
             return;
         }
@@ -42,11 +41,9 @@ export default function PollDisplay({
             setPollOptions((prev: any) =>
                 prev.map((opt: any) => {
                     if (opt.id === newOptionId) {
-                        // Increment new vote
                         return { ...opt, voteCount: opt.voteCount + 1 };
                     }
                     if (oldOptionId && opt.id === oldOptionId) {
-                        // Decrement previous vote
                         return { ...opt, voteCount: opt.voteCount - 1 };
                     }
                     return opt;
@@ -59,97 +56,180 @@ export default function PollDisplay({
         setVoting(false);
     };
 
-    // -------------------------
-    // STATE A: ACTIVE & NOT EXPIRED
-    // -------------------------
     if (!isExpired) {
         return (
-            <div className="space-y-2">
-                {pollOptions.map((opt: any) => {
-                    const isUserPick = opt.id === userVote;
-                    const percent = totalVotes ? Math.round((opt.voteCount / totalVotes) * 100) : 0;
+            <div className="space-y-3">
+                <AnimatePresence>
+                    {pollOptions.map((opt: any, idx: number) => {
+                        const isUserPick = opt.id === userVote;
+                        const percent = totalVotes ? Math.round((opt.voteCount / totalVotes) * 100) : 0;
 
-                    return (
-                        <button
-                            key={opt.id}
-                            disabled={voting || isExpired}
-                            onClick={() => handleVote(opt.id)}
-                            className={`w-full px-4 py-2 rounded-lg border text-left transition-all
-                                ${isUserPick
-                                    ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                                    : "border-neutral-300 dark:border-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-700"
-                                }
-                            ${isExpired ? "cursor-not-allowed opacity-60 hover:bg-transparent" : ""}
-                `}
-                        >
-                            <div className="flex justify-between items-center">
-                                <span>{opt.text}</span>
-                                {isUserPick && <span className="text-xs text-blue-500">Your Vote</span>}
-                            </div>
-                            <div className="mt-2">
-                                <div
-                                    className="h-2 rounded bg-blue-500/30 dark:bg-blue-800/40"
-                                    style={{ width: `${percent}%` }}
-                                ></div>
-                                <div className="flex justify-between mt-2 text-xs text-neutral-500 dark:text-neutral-400">
-                                    <span>{percent}%</span>
-                                    <span>{opt.voteCount} votes</span>
+                        return (
+                            <motion.button
+                                key={opt.id}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: idx * 0.1 }}
+                                whileHover={{ scale: 1.02, x: 4 }}
+                                whileTap={{ scale: 0.98 }}
+                                disabled={voting || isExpired}
+                                onClick={() => handleVote(opt.id)}
+                                className={`relative w-full p-4 rounded-xl text-left transition-all duration-300 overflow-hidden
+                                    ${isUserPick
+                                        ? "bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30 border-2 border-blue-400 dark:border-blue-500 shadow-lg shadow-blue-500/20"
+                                        : "bg-white/50 dark:bg-black/20 backdrop-blur-sm border border-neutral-200/50 dark:border-neutral-700/50 hover:bg-white dark:hover:bg-black/30 hover:border-blue-300 dark:hover:border-blue-700"
+                                    }
+                                    ${isExpired ? "cursor-not-allowed opacity-60" : "cursor-pointer"}
+                                `}
+                            >
+                                <div className="relative z-10">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className={`font-semibold text-sm ${isUserPick ? 'text-blue-700 dark:text-blue-300' : 'text-neutral-800 dark:text-neutral-200'}`}>
+                                            {opt.text}
+                                        </span>
+                                        {isUserPick && (
+                                            <motion.span
+                                                initial={{ scale: 0 }}
+                                                animate={{ scale: 1 }}
+                                                className="px-2 py-0.5 rounded-full bg-blue-500 text-white text-xs font-bold shadow-lg"
+                                            >
+                                                Your Vote
+                                            </motion.span>
+                                        )}
+                                    </div>
+
+                                    <div className="relative h-2 bg-neutral-200/50 dark:bg-neutral-700/50 rounded-full overflow-hidden mb-2">
+                                        <motion.div
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${percent}%` }}
+                                            transition={{ duration: 0.8, ease: "easeOut" }}
+                                            className={`absolute inset-y-0 left-0 rounded-full ${isUserPick
+                                                    ? 'bg-gradient-to-r from-blue-500 to-cyan-500'
+                                                    : 'bg-gradient-to-r from-blue-400 to-cyan-400'
+                                                }`}
+                                        />
+                                        {isUserPick && (
+                                            <motion.div
+                                                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                                                animate={{ x: ['-100%', '200%'] }}
+                                                transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                                            />
+                                        )}
+                                    </div>
+
+                                    <div className="flex justify-between items-center text-xs">
+                                        <span className={`font-bold ${isUserPick ? 'text-blue-600 dark:text-blue-400' : 'text-neutral-600 dark:text-neutral-400'}`}>
+                                            {percent}%
+                                        </span>
+                                        <span className="text-neutral-500 dark:text-neutral-400 flex items-center gap-1">
+                                            <TrendingUp className="w-3 h-3" />
+                                            {opt.voteCount} {opt.voteCount === 1 ? 'vote' : 'votes'}
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
-                        </button>
-                    );
-                })}
-                <span className="text-xs text-neutral-500 dark:text-neutral-400">
-                    {expireTime(new Date(post.expiresAt))}
-                </span>
+                            </motion.button>
+                        );
+                    })}
+                </AnimatePresence>
+
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                    className="flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400 mt-3 px-1"
+                >
+                    <Clock className="w-3.5 h-3.5" />
+                    <span className="font-medium">{expireTime(new Date(post.expiresAt))}</span>
+                </motion.div>
             </div>
         );
     }
 
-    // -------------------------
-    // STATE B: EXPIRED
-    // -------------------------
     return (
         <div className="space-y-3">
-            <span className="text-xs px-2 py-1 rounded-full bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300">
+            <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-red-100 to-orange-100 dark:from-red-900/30 dark:to-orange-900/30 text-red-700 dark:text-red-300 text-xs font-bold border border-red-300 dark:border-red-700/50 shadow-lg"
+            >
+                <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
                 Poll Closed
-            </span>
+            </motion.div>
 
-            {pollOptions.map((opt: any) => {
-                const percent = totalVotes ? Math.round((opt.voteCount / totalVotes) * 100) : 0;
-                const isUserPick = opt.id === userVote;
+            <AnimatePresence>
+                {pollOptions.map((opt: any, idx: number) => {
+                    const percent = totalVotes ? Math.round((opt.voteCount / totalVotes) * 100) : 0;
+                    const isUserPick = opt.id === userVote;
+                    const isLeading = pollOptions.every((o: any) => o.id === opt.id || opt.voteCount >= o.voteCount);
 
-                return (
-                    <div key={opt.id} className="w-full mt-2">
-                        <div
-                            className={`relative w-full rounded-lg p-2 border
+                    return (
+                        <motion.div
+                            key={opt.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: idx * 0.1 }}
+                            className={`relative w-full p-4 rounded-xl overflow-hidden
                                 ${isUserPick
-                                    ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                                    : "border-neutral-300 dark:border-neutral-700"
+                                    ? "bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30 border-2 border-blue-400 dark:border-blue-500"
+                                    : "bg-white/50 dark:bg-black/20 backdrop-blur-sm border border-neutral-200/50 dark:border-neutral-700/50"
                                 }
                             `}
                         >
-                            <div
-                                className="h-2 rounded bg-blue-500/30 dark:bg-blue-800/40"
-                                style={{ width: `${percent}%` }}
-                            ></div>
+                            <div className="relative z-10">
+                                <div className="flex justify-between items-start mb-2">
+                                    <span className={`font-semibold text-sm ${isUserPick ? 'text-blue-700 dark:text-blue-300' : 'text-neutral-800 dark:text-neutral-200'}`}>
+                                        {opt.text}
+                                    </span>
+                                    <div className="flex items-center gap-2">
+                                        {isUserPick && (
+                                            <span className="px-2 py-0.5 rounded-full bg-blue-500 text-white text-xs font-bold">
+                                                You
+                                            </span>
+                                        )}
+                                        {isLeading && opt.voteCount > 0 && (
+                                            <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 text-white text-xs font-bold shadow-lg">
+                                                Leading
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
 
-                            <div className="flex items-center justify-between mt-2 text-sm">
-                                <span className="text-neutral-800 dark:text-neutral-200">
-                                    {opt.text}
-                                </span>
-                                <span className="text-neutral-600 dark:text-neutral-400">
-                                    {percent}%
-                                </span>
+                                <div className="relative h-3 bg-neutral-200/50 dark:bg-neutral-700/50 rounded-full overflow-hidden mb-2">
+                                    <motion.div
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${percent}%` }}
+                                        transition={{ duration: 1, ease: "easeOut" }}
+                                        className={`absolute inset-y-0 left-0 rounded-full ${isLeading && opt.voteCount > 0
+                                                ? 'bg-gradient-to-r from-amber-400 to-orange-500'
+                                                : isUserPick
+                                                    ? 'bg-gradient-to-r from-blue-500 to-cyan-500'
+                                                    : 'bg-gradient-to-r from-neutral-400 to-neutral-500'
+                                            }`}
+                                    />
+                                </div>
+
+                                <div className="flex justify-between items-center text-xs">
+                                    <span className="font-bold text-neutral-700 dark:text-neutral-300">
+                                        {percent}%
+                                    </span>
+                                    <span className="text-neutral-500 dark:text-neutral-400">
+                                        {opt.voteCount} {opt.voteCount === 1 ? 'vote' : 'votes'}
+                                    </span>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                );
-            })}
+                        </motion.div>
+                    );
+                })}
+            </AnimatePresence>
 
-            <span className="text-xs text-neutral-500 dark:text-neutral-400">
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+                className="text-xs text-neutral-600 dark:text-neutral-400 font-semibold pt-2 border-t border-neutral-200/50 dark:border-neutral-700/50"
+            >
                 Total votes: {totalVotes}
-            </span>
+            </motion.div>
         </div>
     );
 }

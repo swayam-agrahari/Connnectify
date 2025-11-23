@@ -14,7 +14,7 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  const res = await fetch(`http://localhost:3001/api/auth/validate`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_USER_SERVICE}/api/auth/validate`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -34,7 +34,7 @@ export default async function DashboardPage() {
   const posts = await getAllPosts();
   const user = await getUserDetail();
 
-  const tagsRes = await fetch(`http://localhost:3003/api/posts/tags/trending`, {
+  const tagsRes = await fetch(`${process.env.NEXT_PUBLIC_POST_SERVICE}/api/posts/tags/trending`, {
     cache: 'no-store',
     method: "GET"
   });

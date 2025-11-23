@@ -11,7 +11,7 @@ export async function getCommunities() {
     if (!tokenCookie) {
         return { success: false, error: "Authentication session not found." };
     }
-    const res = await fetch(`http://localhost:3002/api/community/user/communities`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_COMMUNITY_SERVICE}/api/community/user/communities`, {
         headers: {
             "Content-Type": "application/json",
             "Cookie": `session=${tokenCookie.value}`
@@ -36,7 +36,7 @@ export async function getAllPosts() {
         return { success: false, error: "Authentication session or university id not found." };
     }
 
-    const res = await fetch(`http://localhost:3003/api/posts/${uid.value}/posts`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_POST_SERVICE}/api/posts/${uid.value}/posts`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
@@ -57,12 +57,12 @@ export async function getAllPosts() {
     }
 
     const [usersRes, communitiesRes] = await Promise.all([
-        fetch(`http://localhost:3001/api/auth/bulk`, {
+        fetch(`${process.env.NEXT_PUBLIC_USER_SERVICE}/api/auth/bulk`, {
             method: "POST",
             body: JSON.stringify({ ids: authorIds }),
             headers: { "Content-Type": "application/json" }
         }),
-        fetch(`http://localhost:3002/api/community/bulk`, {
+        fetch(`${process.env.NEXT_PUBLIC_COMMUNITY_SERVICE}/api/community/bulk`, {
             method: "POST",
             body: JSON.stringify({ ids: communityIds }),
             headers: { "Content-Type": "application/json" }
@@ -110,7 +110,7 @@ export async function createPost(data: any) {
         universityId: uid.value,
     };
 
-    const res = await fetch(`http://localhost:3003/api/posts`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_POST_SERVICE}/api/posts`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -130,7 +130,7 @@ export async function createPost(data: any) {
 export async function sendImageToBackend(imageUrl: string) {
     try {
         // This is your Express backend endpoint
-        const backendUrl = "http://localhost:3002/api/posts";
+        const backendUrl = `${process.env.NEXT_PUBLIC_COMMUNITY_SERVICE}/api/posts`;
 
         const res = await fetch(backendUrl, {
             method: "POST",
@@ -161,7 +161,7 @@ export async function getUserDetail() {
             return { success: false, error: "Authentication session not found." };
         }
 
-        const res = await fetch("http://localhost:3001/api/auth/me", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_USER_SERVICE}/api/auth/me`, {
             credentials: "include",
             method: "POST",
             headers: {
@@ -193,7 +193,7 @@ export async function voteOnPoll(postId: string, pollOptionId: string) {
         if (!tokenCookie) {
             return { success: false, error: "Authentication session not found." };
         }
-        const res = await fetch(`http://localhost:3003/api/posts/${postId}/poll/vote`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_POST_SERVICE}/api/posts/${postId}/poll/vote`, {
             credentials: "include",
             method: "POST",
             headers: {
@@ -235,7 +235,7 @@ export async function getAllUsers() {
         if (!tokenCookie || !uid) {
             return { success: false, error: "Authentication session not found." };
         }
-        const res = await fetch(`http://localhost:3001/api/auth/${uid.value}/all`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_USER_SERVICE}/api/auth/${uid.value}/all`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
