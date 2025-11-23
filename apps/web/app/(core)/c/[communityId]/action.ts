@@ -2,18 +2,19 @@
 
 import { cookies } from "next/headers";
 
-export async function getAllPosts(communityId: string) {
+export async function getAllPosts(creatorId: string) {
     const cookieStore = await cookies();
     const token = cookieStore.get("session");
     const uID = cookieStore.get("uID");
 
-    const res = await fetch(`http://localhost:3003/api/posts/${communityId}/posts/community`, {
-        method: "GET",
+    const res = await fetch(`${process.env.NEXT_PUBLIC_POST_SERVICE}/api/posts/community/posts`, {
+        method: "POST",
         headers: {
             "Content-Type": "application/json",
             "uid": `${uID?.value}`,
             "Cookie": `session=${token?.value}`
         },
+        body: JSON.stringify({ creatorId }),
     });
 
     if (!res.ok) {
@@ -31,12 +32,12 @@ export async function getAllPosts(communityId: string) {
     }
 
     const [usersRes, communitiesRes] = await Promise.all([
-        fetch(`http://localhost:3001/api/auth/bulk`, {
+        fetch(`${process.env.NEXT_PUBLIC_USER_SERVICE}/api/auth/bulk`, {
             method: "POST",
             body: JSON.stringify({ ids: authorIds }),
             headers: { "Content-Type": "application/json" }
         }),
-        fetch(`http://localhost:3002/api/community/bulk`, {
+        fetch(`${process.env.NEXT_PUBLIC_COMMUNITY_SERVICE}/api/community/bulk`, {
             method: "POST",
             body: JSON.stringify({ ids: communityIds }),
             headers: { "Content-Type": "application/json" }
@@ -58,17 +59,12 @@ export async function getAllPosts(communityId: string) {
         return acc;
     }, {});
 
-    // console.log("User Map:", userMap);
-    console.log("Community Map:", communityMap);
-
     const enrichedPosts: any[] = postData.posts.map((post: any) => ({
         ...post,
         authorName: userMap[post.authorId]?.username || "Unknown User",
         authorImage: userMap[post.authorId]?.profileImageUrl,
         communityName: communityMap[post.communityId]?.name || "Public",
     }));
-
-    console.log("Enriched Posts:", enrichedPosts);
 
     return enrichedPosts;
 }
@@ -79,7 +75,7 @@ export async function getCommunityDetails(communityId: string) {
     const token = cookieStore.get("session");
     const uID = cookieStore.get("uID");
 
-    const res = await fetch(`http://localhost:3002/api/community/${communityId}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_COMMUNITY_SERVICE}/api/community/${communityId}`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
@@ -109,7 +105,7 @@ export async function checkMembership(communityId: string) {
         throw new Error("no token or uni id")
     }
 
-    const res = await fetch(`http://localhost:3002/api/community/${communityId}/membership-status`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_COMMUNITY_SERVICE}/api/community/${communityId}/membership-status`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
@@ -139,7 +135,7 @@ export async function checkCreatorStatus(communityId: string) {
         throw new Error("no token or uni id")
     }
 
-    const res = await fetch(`http://localhost:3002/api/community/${communityId}/created`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_COMMUNITY_SERVICE}/api/community/${communityId}/created`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
@@ -154,4 +150,71 @@ export async function checkCreatorStatus(communityId: string) {
     const data = await res.json();
 
     return data.isCreator;
+}
+
+
+export async function getAllMentions(creatorId: string, communityId: string) {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("session");
+    const uID = cookieStore.get("uID");
+
+    const res = await fetch(`${process.env.NEXT_PUBLIC_POST_SERVICE}/api/posts/community/mentions`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "uid": `${uID?.value}`,
+            "Cookie": `session=${token?.value}`
+        },
+        body: JSON.stringify({ creatorId, communityId }),
+    });
+
+    if (!res.ok) {
+        throw new Error("Failed to fetch mentions");
+    }
+
+    const mentionData = await res.json();;
+
+    const authorIds = [...new Set(mentionData.posts.map((p: any) => p.authorId))];
+    const communityIds = [...new Set(mentionData.posts.map((p: any) => p.communityId))];
+
+    if (communityIds.length === 0) {
+        return [];
+    }
+
+    const [usersRes, communitiesRes] = await Promise.all([
+        fetch(`${process.env.NEXT_PUBLIC_USER_SERVICE}/api/auth/bulk`, {
+            method: "POST",
+            body: JSON.stringify({ ids: authorIds }),
+            headers: { "Content-Type": "application/json" }
+        }),
+        fetch(`${process.env.NEXT_PUBLIC_COMMUNITY_SERVICE}/api/community/bulk`, {
+            method: "POST",
+            body: JSON.stringify({ ids: communityIds }),
+            headers: { "Content-Type": "application/json" }
+        })
+    ]);
+
+
+
+    const { users } = await usersRes.json();
+    const { communities } = await communitiesRes.json();
+
+    const userMap = users.reduce((acc: any, user: any) => {
+        acc[user.id] = user;
+        return acc;
+    }, {});
+
+    const communityMap = communities.reduce((acc: any, comm: any) => {
+        acc[comm.id] = comm;
+        return acc;
+    }, {});
+
+    const enrichedPosts: any[] = mentionData.posts.map((post: any) => ({
+        ...post,
+        authorName: userMap[post.authorId]?.username || "Unknown User",
+        authorImage: userMap[post.authorId]?.profileImageUrl,
+        communityName: communityMap[post.communityId]?.name || "Public",
+    }));
+
+    return enrichedPosts;
 }

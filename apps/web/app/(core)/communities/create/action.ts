@@ -20,7 +20,7 @@ export async function createCommunity(data: {
         if (!token || !uid) {
             throw new Error("no token or uni id")
         }
-        const response = await fetch(`http://localhost:3002/api/community/create`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_COMMUNITY_SERVICE}/api/community/create`, {
             method: 'POST',
             headers: {
                 "Content-Type": "application/json",

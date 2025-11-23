@@ -7,10 +7,13 @@ import { joinLeaveCommunity } from '../../communities/action';
 import { useCreatePost } from '@/hooks/useCreatePost';
 import { CreatePostModal } from '../../posts/CreatePostModal';
 
-export default function CommunityPageComponent({ posts, community, isMember, creator, userInfo }: { posts: any, community: any, isMember: Boolean, creator: Boolean, userInfo: any }) {
+export default function CommunityPageComponent({ posts, community, mentions, isMember, creator, userInfo }: { posts: any, community: any, mentions: any, isMember: Boolean, creator: Boolean, userInfo: any }) {
     const [activeTab, setActiveTab] = useState('posts');
     const [isMemberState, setIsMemberState] = useState(isMember);
     const [isCreator, setIsCreator] = useState(creator);
+    const [searchText, setSearchText] = useState("");
+    const [postFilter, setPostFilter] = useState("all");
+
     const [pending, startTransition] = useTransition();
     const [error, setError] = useState("");
 
@@ -47,6 +50,53 @@ export default function CommunityPageComponent({ posts, community, isMember, cre
 
         })
     }
+
+
+    // Define filter -> tags mapping
+    const TAG_FILTERS: Record<string, string[]> = {
+        all: [],
+        announcement: ["announcement", "announcements"],
+        placements: ["placement", "placements"],
+    };
+
+
+    const filteredPosts = posts.filter((post: any) => {
+        const lowerSearch = searchText.toLowerCase();
+
+        // ---- TAG FILTER ----
+        const filterTags = TAG_FILTERS[postFilter];
+        if (filterTags && filterTags.length > 0) {
+            const postTags = post.tags?.map((t: string) => t.toLowerCase()) || [];
+            const matchesTag = postTags.some((tag: string) => filterTags.includes(tag));
+            if (!matchesTag) return false;
+        }
+
+        // ---- SEARCH FILTER ----
+        if (searchText.trim() !== "") {
+            const matchesContent = post.content?.toLowerCase().includes(lowerSearch);
+            const matchesTags = post.tags?.some((tag: string) =>
+                tag.toLowerCase().includes(lowerSearch)
+            );
+            return matchesContent || matchesTags;
+        }
+
+        return true;
+    });
+
+
+
+    const filteredMentions = mentions.filter((post: any) => {
+        if (searchText.trim().length === 0) return true;
+
+        const lowerSearch = searchText.toLowerCase();
+
+        const matchesContent = post.content?.toLowerCase().includes(lowerSearch);
+        const matchesTags = post.tags?.some((tag: string) =>
+            tag.toLowerCase().includes(lowerSearch)
+        );
+
+        return matchesContent || matchesTags;
+    });
 
 
 
@@ -127,13 +177,13 @@ export default function CommunityPageComponent({ posts, community, isMember, cre
                             Members
                         </button>
                         <button
-                            onClick={() => setActiveTab('about')}
-                            className={`py-4 border-b-2 font-medium transition-colors ${activeTab === 'about'
+                            onClick={() => setActiveTab('mentions')}
+                            className={`py-4 border-b-2 font-medium transition-colors ${activeTab === 'mentions'
                                 ? 'border-purple-600 text-purple-600'
                                 : 'border-transparent text-gray-600 hover:text-gray-900'
                                 }`}
                         >
-                            About
+                            Mentions
                         </button>
                     </div>
                 </div>
@@ -171,34 +221,73 @@ export default function CommunityPageComponent({ posts, community, isMember, cre
                         {/* Filter Bar */}
                         <div className="flex items-center justify-between">
                             <div className="flex gap-2">
-                                <button className="px-4 py-2 bg-purple-600 text-white rounded-lg font-medium">
-                                    All Posts
-                                </button>
-                                <button className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium">
-                                    Events
-                                </button>
-                                <button className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium">
-                                    Placements
-                                </button>
+                                {(activeTab === 'posts' || activeTab === 'mentions') && (
+                                    <button
+                                        onClick={() => setPostFilter("all")}
+                                        className={`px-4 py-2 rounded-lg font-medium ${postFilter === "all" ? "bg-purple-600 text-white" : "text-gray-600 hover:bg-gray-100"
+                                            }`}
+                                    >
+                                        All Posts
+                                    </button>
+                                )}
+
+                                {activeTab === 'posts' && (
+                                    <button
+                                        onClick={() => setPostFilter("announcement")}
+                                        className={`px-4 py-2 rounded-lg font-medium ${postFilter === "announcement" ? "bg-purple-600 text-white" : "text-gray-600 hover:bg-gray-100"
+                                            }`}
+                                    >
+                                        Announcement
+                                    </button>)}
+
+
+                                {activeTab === 'posts' && (
+                                    <button
+                                        onClick={() => setPostFilter("placements")}
+                                        className={`px-4 py-2 rounded-lg font-medium ${postFilter === "placements" ? "bg-purple-600 text-white" : "text-gray-600 hover:bg-gray-100"
+                                            }`}
+                                    >
+                                        Placements
+                                    </button>)}
                             </div>
+
                             <div className="relative">
                                 <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                                 <input
                                     type="text"
                                     placeholder="Search posts..."
+                                    value={searchText}
+                                    onChange={(e) => setSearchText(e.target.value)}
                                     className="pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent w-64"
                                 />
+
                             </div>
                         </div>
 
                         {/* Posts Feed */}
-                        {posts.length === 0 ? (
-                            <p className="text-center text-gray-500 mt-12">No posts available in this community.</p>
-                        ) : (
-                            posts.map((post: any) => (
-                                <PostCard key={post.id} post={post} userId={userInfo.id} />
-                            ))
-                        )}
+                        {
+                            activeTab === 'posts' ? (
+                                filteredPosts.length === 0 ?
+                                    <p className="text-center text-gray-500 mt-12">No posts available in this community.</p>
+                                    :
+                                    filteredPosts.map((post: any) => (
+                                        <PostCard key={post.id} post={post} userId={userInfo.id} />
+                                    ))
+                            ) : activeTab === 'mentions' ? (   // Mentions tab
+                                mentions.length === 0 ?
+                                    <p className="text-center text-gray-500 mt-12">No mentions found in this community.</p>
+                                    :
+                                    filteredMentions.length === 0 ? (
+                                        <p className="text-center text-gray-500 mt-12">No mentions found.</p>
+                                    ) : (
+                                        filteredMentions.map((post: any) => (
+                                            <PostCard key={post.id} post={post} userId={userInfo.id} />
+                                        ))
+                                    )
+                            ) : (
+                                <p className="text-center text-gray-500 mt-12">No data available for this tab.</p>
+                            )
+                        }
                     </div>
                     {/* Sidebar */}
                     <div className="space-y-6">

@@ -16,7 +16,7 @@ export async function getAllComunities() {
         throw new Error("no token or uni id")
     }
 
-    const res = await fetch("http://localhost:3002/api/community/university", {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_COMMUNITY_SERVICE}/api/community/university`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
@@ -48,7 +48,7 @@ export async function getAllUserCommunities() {
         throw new Error("no token or uni id")
     }
 
-    const res = await fetch("http://localhost:3002/api/community/user/communities", {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_COMMUNITY_SERVICE}/api/community/user/communities`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
@@ -77,7 +77,7 @@ export async function joinLeaveCommunity(communityId: string, isJoining: boolean
     }
 
     const method = isJoining ? 'POST' : 'DELETE'; // POST for join, DELETE for leave
-    const res = await fetch(`http://localhost:3002/api/community/${communityId}/join-leave`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_COMMUNITY_SERVICE}/api/community/${communityId}/join-leave`, {
         method: method,
         headers: {
             "Content-Type": "application/json",
@@ -104,7 +104,7 @@ export async function getCreatedCommunities() {
         throw new Error("no token or uni id")
     }
 
-    const res = await fetch(`http://localhost:3002/api/community/user`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_COMMUNITY_SERVICE}/api/community/user`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
