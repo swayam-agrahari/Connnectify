@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "prisma generate && tsc",
-    "dev": "nodemon --exec tsx src/index.ts",
-    "postinstall": "prisma generate"
+   "build": "npx prisma generate && tsc", 
+   "dev": "nodemon --exec tsx src/index.ts",
+   "postinstall": "npx prisma generate"
   },
   "prisma": {
   "seed": "tsx prisma/seed.ts"
