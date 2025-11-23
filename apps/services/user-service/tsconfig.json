@@ -1,31 +1,11 @@
 {
   "compilerOptions": {
-   
-    "module": "nodenext",
-    "target": "esnext",
-    "types": [],
+    "target": "ES2020",
+    "module": "NodeNext", 
+    "moduleResolution": "NodeNext",
     "outDir": "dist",
-
-    "paths": {
-      "@/prisma/*": ["./src/generated/*"],
-      "@/*": ["./*"],
-    },
-
-    "sourceMap": true,
-    "declaration": true,
-    "declarationMap": true,
-    "noEmit": true,
-    "allowImportingTsExtensions": true,
-
-    "noUncheckedIndexedAccess": true,
-    "exactOptionalPropertyTypes": true,
-
     "strict": true,
-    "jsx": "react-jsx",
-    "verbatimModuleSyntax": true,
-    "isolatedModules": true,
-    "noUncheckedSideEffectImports": true,
-    "moduleDetection": "force",
-    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
   }
 }
