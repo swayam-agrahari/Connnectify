@@ -20,7 +20,7 @@ export const createPostSchema = z.object({
     poll: pollSchema.optional(),
     tags: z.array(z.string()).default([]),
     universityId: z.string(),
-}).superRefine((data, ctx) => {
+}).superRefine((data: z.infer<typeof createPostSchema>, ctx: z.RefinementCtx) => {
     if (data.type === 'POLL') {
         if (!data.poll) {
             ctx.addIssue({

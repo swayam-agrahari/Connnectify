@@ -15,8 +15,15 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/express": "^5.0.5",
     "dotenv": "^16.0.3",
-    "nodemon": "^3.1.10"
+    "express": "^5.1.0",
+    "nodemon": "^3.1.11",
+    "cookie-parser": "^1.4.7",
+    "jsonwebtoken": "^9.0.2",
+    "prisma": "^6.18.0",
+    "cors": "^2.8.5",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@faker-js/faker": "^10.1.0",
