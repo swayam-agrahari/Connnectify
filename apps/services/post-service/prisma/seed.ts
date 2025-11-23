@@ -1,9 +1,9 @@
-import prisma from '../src/generated/index';
-import { PostType, VoteType } from '../src/generated/prisma/client';
+import { PrismaClient } from '@connectify/post-db';
+import { PostType, VoteType } from '@connectify/post-db/client'
 import { faker } from '@faker-js/faker';
 
 
-
+const prisma = new PrismaClient();
 async function main() {
     console.log('🌱 Seeding Post Service...');
 

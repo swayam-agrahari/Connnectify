@@ -1,6 +1,8 @@
-import prisma from '../src/routes/prisma.js';
+import { PrismaClient } from '@connectify/auth-db';
 import { faker } from '@faker-js/faker';
-import bcrypt from 'bcrypt'; // Assuming you might need hashed passwords
+import bcrypt from 'bcrypt';
+
+const prisma = new PrismaClient();
 
 async function main() {
     console.log('🌱 Seeding User Service...');

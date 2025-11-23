@@ -17,6 +17,10 @@ app.use(express.json());
 
 app.use("/api/posts", postRouter)
 
+app.get("/", (req, res) => {
+    res.send("Post Service is running")
+})
+
 
 app.listen(port, () => {
     console.log("Post service is listenting at ", port)

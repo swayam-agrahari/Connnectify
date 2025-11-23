@@ -20,7 +20,7 @@ app.use("/api/community", communityRouter)
 app.use("/api/university", universityRouter)
 
 app.get("/", (req, res) => {
-  res.send("User Service is running")
+  res.send("Community Service is running")
 })
 
 app.listen(PORT, () => {

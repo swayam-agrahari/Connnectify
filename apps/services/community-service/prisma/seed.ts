@@ -1,5 +1,7 @@
-import prisma from '../src/generated/index'; // 👈 Your custom path
+import { PrismaClient } from '@connectify/community-db'; // 👈 Your custom path
 import { faker } from '@faker-js/faker';
+
+const prisma = new PrismaClient();
 
 async function main() {
     console.log('🌱 Seeding Community Service...');
