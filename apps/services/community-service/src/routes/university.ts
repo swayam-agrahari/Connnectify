@@ -8,9 +8,11 @@ export const universityRouter = express.Router();
 //get all universities
 universityRouter.get("/", async (req: Request, res: Response) => {
     try {
+        console.log("Fetching all universities");
         const universities = await prisma.university.findMany();
         res.status(200).json(universities);
     } catch (error) {
+        console.error("Error fetching universities:", error);
         res.status(500).json({ error: "Failed to fetch universities" });
     }
 });
