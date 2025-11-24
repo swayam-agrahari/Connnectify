@@ -34,7 +34,9 @@ function handleView(postId: any) {
 
 export const PostCard = ({ post, userId }: { post: any, userId: string }) => {
     const [likesCount, setLikesCount] = useState(post.votes?.length || 0);
-    const [isLikedState, setIsLikedState] = useState(post.votes.some((like: any) => like.userId === userId));
+    const [isLikedState, setIsLikedState] = useState(
+        post.votes?.some((like: any) => like.userId === userId) || false
+    );
     const [imageLoaded, setImageLoaded] = useState(false);
 
     const handleVote = async (postId: string, voteType: "UPVOTE" | "DOWNVOTE") => {
@@ -119,7 +121,7 @@ export const PostCard = ({ post, userId }: { post: any, userId: string }) => {
                     <div className="flex flex-wrap gap-2 mb-4">
                         {post.tags.map((tag: string, idx: number) => (
                             <motion.span
-                                key={tag}
+                                key={`${tag}-${idx}`}
                                 initial={{ opacity: 0, scale: 0.8 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 transition={{ delay: idx * 0.05 }}
