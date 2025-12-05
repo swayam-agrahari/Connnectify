@@ -169,7 +169,7 @@ export default function EventsPage() {
                         <button
                             key={category}
                             onClick={() => setSelectedCategory(category)}
-                            className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-all ${selectedCategory === category
+                            className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-all cursor-pointer ${selectedCategory === category
                                 ? 'bg-purple-600 text-white shadow-lg'
                                 : 'bg-white text-gray-700 hover:bg-purple-50 border border-gray-200'
                                 }`}
@@ -252,7 +252,7 @@ export default function EventsPage() {
                                                 </span>
                                             </div>
 
-                                            <button className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium flex items-center gap-1" onClick={() => handleClick(event.id)}>
+                                            <button className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium flex items-center gap-1 cursor-pointer" onClick={() => handleClick(event.id)}>
                                                 View Details
                                                 <ChevronRight className="w-4 h-4" />
                                             </button>

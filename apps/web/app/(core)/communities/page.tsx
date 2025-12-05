@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import CommunitiesPage from ".";
 import { getAllComunities, getAllUserCommunities } from "./action";
+import { getUniversityName } from "../profile/[userId]/edit-profile/action";
 
 
 export default async function Communities() {
