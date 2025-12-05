@@ -155,7 +155,7 @@ export default function ProfilePage({ initialUserData, initialPosts, userId, myU
                         {isCurrentUser && <div className='flex justify-end gap-3'>
                             <button
                                 onClick={() => router.push(`/profile/${user.id}/edit-profile`)}
-                                className="px-6 py-2.5 bg-white border-2 border-gray-300 text-gray-900 rounded-lg hover:bg-gray-50 transition-colors font-semibold flex items-center gap-2 shadow-sm"
+                                className="px-6 py-2.5 bg-white border-2 border-gray-300 text-gray-900 rounded-lg hover:bg-gray-50 transition-colors font-semibold flex items-center gap-2 shadow-sm cursor-pointer"
                             >
                                 <Edit3 className="w-4 h-4" />
                                 Edit Profile
@@ -163,7 +163,7 @@ export default function ProfilePage({ initialUserData, initialPosts, userId, myU
 
                             <button
                                 onClick={() => setShowLogoutModal(true)}
-                                className="p-2.5 bg-red-50 border-2 border-red-200 text-red-600 rounded-lg hover:bg-red-100 transition-colors shadow-sm"
+                                className="p-2.5 bg-red-50 border-2 border-red-200 text-red-600 rounded-lg hover:bg-red-100 transition-colors shadow-sm cursor-pointer"
                             >
                                 <LogOut className="w-5 h-5" />
                             </button>

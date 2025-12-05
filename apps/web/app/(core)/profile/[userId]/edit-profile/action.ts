@@ -65,3 +65,24 @@ export async function updateUserDetails(updatedData: any) {
     }
 }
 
+export async function getUniversityName(universityId: string) {
+    try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_COMMUNITY_SERVICE}/api/university/${universityId}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+
+        if (!res.ok) {
+            throw new Error("Failed to fetch university name");
+        }
+
+        const data = await res.json();
+        console.log("University data fetched:", data);
+        return data.name;
+    } catch (error) {
+        console.error("Error fetching university name:", error);
+        throw error;
+    }
+}

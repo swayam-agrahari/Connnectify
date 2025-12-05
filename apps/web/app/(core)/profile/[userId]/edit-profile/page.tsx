@@ -1,11 +1,12 @@
 import ConnectifyProfile from ".";
-import { getUserDetails } from "./action";
+import { getUniversityName, getUserDetails } from "./action";
 
 
 export default async function EditProfile() {
     const data = await getUserDetails();
+    const universityName = await getUniversityName(data.universityId);
 
     return (
-        <ConnectifyProfile initialUserData={data} />
+        <ConnectifyProfile initialUserData={data} universityName={universityName} />
     )
 }

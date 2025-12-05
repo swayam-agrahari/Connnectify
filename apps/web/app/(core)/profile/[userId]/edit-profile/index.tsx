@@ -3,6 +3,7 @@ import React, { useState, useTransition } from 'react';
 import { User, Mail, University, Calendar, Edit2, Save, X, Camera, Check } from 'lucide-react';
 import { updateUserDetails } from './action';
 import { CldUploadButton } from 'next-cloudinary';
+import { useRouter } from 'next/navigation';
 
 interface ConnectifyProfileProps {
     id: string;
@@ -16,12 +17,14 @@ interface ConnectifyProfileProps {
 
 };
 
-const ConnectifyProfile = ({ initialUserData }: { initialUserData: any }) => {
+const ConnectifyProfile = ({ initialUserData, universityName }: { initialUserData: any, universityName: string }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
 
     const [userData, setUserData] = useState(initialUserData);
     const [pending, startTransition] = useTransition();
+
+    const router = useRouter();
 
     const [editForm, setEditForm] = useState({
         name: userData.name,
@@ -45,7 +48,6 @@ const ConnectifyProfile = ({ initialUserData }: { initialUserData: any }) => {
     };
 
     const handleSave = () => {
-        // In real app, this would call your backend API
         setUserData({
             ...userData,
             name: editForm.name,
@@ -74,8 +76,6 @@ const ConnectifyProfile = ({ initialUserData }: { initialUserData: any }) => {
 
         });
 
-
-        // setTimeout(() => setShowSuccess(false), 3000);
     };
 
     const handleLogout = async () => {
@@ -93,6 +93,10 @@ const ConnectifyProfile = ({ initialUserData }: { initialUserData: any }) => {
             profileImageUrl: uploadedUrl
         }));
     };
+
+    const handleChangePass = () => {
+        router.push("/forgot-password")
+    }
 
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('en-US', {
@@ -156,7 +160,7 @@ const ConnectifyProfile = ({ initialUserData }: { initialUserData: any }) => {
                             {!isEditing ? (
                                 <button
                                     onClick={handleEdit}
-                                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
                                 >
                                     <Edit2 className="w-4 h-4" />
                                     Edit Profile
@@ -167,12 +171,12 @@ const ConnectifyProfile = ({ initialUserData }: { initialUserData: any }) => {
                                         onClick={handleCancel}
                                         className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
                                     >
-                                        <X className="w-4 h-4" />
+                                        <X className="w-4 h-4 cursor-pointer" />
                                         Cancel
                                     </button>
                                     <button
                                         onClick={handleSave}
-                                        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                                        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer"
                                     >
                                         <Save className="w-4 h-4" />
                                         Save Changes
@@ -242,7 +246,7 @@ const ConnectifyProfile = ({ initialUserData }: { initialUserData: any }) => {
                                 </label>
                                 <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg">
                                     <University className="w-5 h-5 text-gray-400" />
-                                    <span className="text-gray-900">{userData.universityName}</span>
+                                    <span className="text-gray-900">{universityName}</span>
                                 </div>
                             </div>
 
@@ -263,15 +267,15 @@ const ConnectifyProfile = ({ initialUserData }: { initialUserData: any }) => {
                             <div className="mt-8 pt-6 border-t border-gray-200">
                                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Account Settings</h3>
                                 <div className="space-y-3">
-                                    <button className="w-full px-4 py-3 text-left bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors">
+                                    <button className="w-full px-4 py-3 text-left bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer" onClick={handleChangePass} >
                                         <span className="text-gray-700 font-medium">Change Password</span>
                                     </button>
-                                    <button className="w-full px-4 py-3 text-left bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors">
+                                    {/* <button className="w-full px-4 py-3 text-left bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors">
                                         <span className="text-gray-700 font-medium">Email Preferences</span>
                                     </button>
                                     <button className="w-full px-4 py-3 text-left bg-red-50 hover:bg-red-100 rounded-lg transition-colors" onClick={handleLogout}>
                                         <span className="text-red-600 font-medium">Delete Account</span>
-                                    </button>
+                                    </button> */}
                                 </div>
                             </div>
                         )}
