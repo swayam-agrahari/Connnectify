@@ -15,6 +15,7 @@ import { registerAction } from './action';
 interface University {
     id: string;
     name: string;
+    emailDomain: string;
 }
 
 export default function RegisterPage() {
@@ -54,6 +55,20 @@ export default function RegisterPage() {
         }
     };
 
+    const checkAndAutoSelectUniversity = (emailValue: string) => {
+        const parts = emailValue.split('@');
+        if (parts.length < 2) return null;
+
+        const domain = parts[1]?.toLowerCase();
+
+        // 2. Find matching university
+        const matchedUni = universities.find(
+            (u) => u.emailDomain.toLowerCase() === domain
+        );
+
+        return matchedUni ? matchedUni.id : null;
+    };
+
     useEffect(() => {
         const fetchUniversities = async () => {
             try {
@@ -85,26 +100,26 @@ export default function RegisterPage() {
 
         const data = new FormData(e.currentTarget as HTMLFormElement);
 
-startTransition(async () => {
-    const res = await registerAction(data);
-    const anyRes = res as any;
+        startTransition(async () => {
+            const res = await registerAction(data);
+            const anyRes = res as any;
 
-    if (anyRes?.errors) {
-        if ('message' in anyRes.errors) {
-            setErrors({ general: anyRes.errors.message });
-        } else {
-            
-            if ('errors' in anyRes) {
-                setErrors(anyRes.errors);
-            } 
-            
-            else if ('error' in anyRes) {
-                setErrors({ general: anyRes.error }); 
+            if (anyRes?.errors) {
+                if ('message' in anyRes.errors) {
+                    setErrors({ general: anyRes.errors.message });
+                } else {
+
+                    if ('errors' in anyRes) {
+                        setErrors(anyRes.errors);
+                    }
+
+                    else if ('error' in anyRes) {
+                        setErrors({ general: anyRes.error });
+                    }
+                }
             }
-        }
-    }
-    setIsLoading(false);
-});
+            setIsLoading(false);
+        });
     }
 
 
@@ -159,9 +174,18 @@ startTransition(async () => {
                                 value={formdata.email}
                                 onChange={(e) => {
                                     const value = e.target.value;
-                                    setFormdata({ ...formdata, email: value });
+
+                                    // Check if this email matches a university
+                                    const matchedUniId = checkAndAutoSelectUniversity(value);
+
+                                    setFormdata((prev) => ({
+                                        ...prev,
+                                        email: value,
+                                        universityId: matchedUniId || prev.universityId
+                                    }));
+
                                     if (!value.trim()) {
-                                        setErrors(prev => ({ ...prev, email: [] }));
+                                        setErrors((prev) => ({ ...prev, email: [] }));
                                     }
                                 }}
                                 onBlur={(e) => validateEmail(e.target.value)}
@@ -190,8 +214,14 @@ startTransition(async () => {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2 flex justify-between">
                                 University
+                                {/* Show a small badge if auto-detected */}
+                                {universities.find(u => u.id === formdata.universityId && formdata.email.includes(u.emailDomain)) && (
+                                    <span className="text-xs text-green-600 dark:text-green-400 font-normal">
+                                        ✨ Auto-detected from email
+                                    </span>
+                                )}
                             </label>
                             <div className="relative">
                                 {isLoadingUniversities ? (
@@ -203,20 +233,23 @@ startTransition(async () => {
                                     </div>
                                 ) : (
                                     <div className="relative">
-                                        <GraduationCap className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-400 z-10" />
+                                        <GraduationCap
+                                            className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-400 pointer-events-none z-10"
+                                        />
                                         <GlassSelect
                                             value={formdata.universityId}
                                             onChange={(e) => setFormdata({ ...formdata, universityId: e.target.value })}
-                                            name='universityId'
+                                            name="universityId"
                                         >
                                             <option value="">Select your university</option>
                                             {universities.map((uni) => (
-                                                <option key={uni.id} value={uni.id}>
-                                                    {uni.name}
-                                                </option>
+                                            <option key={uni.id} value={uni.id}>
+                                                {uni.name}
+                                            </option>
                                             ))}
                                         </GlassSelect>
-                                    </div>
+                                        </div>
+
                                 )}
                             </div>
                         </div>

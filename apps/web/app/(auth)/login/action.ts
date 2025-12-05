@@ -35,22 +35,21 @@ export async function loginAction(formData: FormData) {
         return { success: false, errors: { message: [data.error || "Invalid email or password"] } };
     }
 
+    const oneWeekInSeconds = 7 * 24 * 60 * 60;
     (await cookies()).set("session", data.token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
-        maxAge: data.maxAge / 1000, // maxAge is in seconds for cookies()
+        maxAge: oneWeekInSeconds,
         path: "/",
-        domain: "localhost",
     });
 
     (await cookies()).set("uid", data.uid, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
-        maxAge: data.maxAge / 1000, // maxAge is in seconds for cookies()
+        maxAge: oneWeekInSeconds,
         path: "/",
-        domain: "localhost",
     });
 
 
