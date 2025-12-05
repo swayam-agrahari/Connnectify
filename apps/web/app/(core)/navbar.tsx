@@ -84,15 +84,15 @@ export default function NavBar({ users, communities, allUsers }: { users: any, c
                         </div>
 
                         <div className="hidden md:flex items-center gap-1">
-                            <button className={`flex items-center gap-2 px-4 py-2 rounded-lg ${active === 'home' ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium' : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors'}`} onClick={handleClickHome}>
+                            <button className={`flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer ${active === 'home' ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium' : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors'}`} onClick={handleClickHome}>
                                 <HomeIcon className="w-5 h-5" />
                                 <span>Home</span>
                             </button>
-                            <button className={`flex items-center gap-2 px-4 py-2 rounded-lg ${active === 'communities' ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium' : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors'}`} onClick={handleClickCommunities}>
+                            <button className={`flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer ${active === 'communities' ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium' : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors'}`} onClick={handleClickCommunities}>
                                 <Users className="w-5 h-5" />
                                 <span>Communities</span>
                             </button>
-                            <button className={`flex items-center gap-2 px-4 py-2 rounded-lg ${active === 'events' ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium' : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors'}`} onClick={() => handleClickEvents()}>
+                            <button className={`flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer ${active === 'events' ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium' : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors'}`} onClick={() => handleClickEvents()}>
                                 <Calendar className="w-5 h-5" />
                                 <span>Events</span>
                             </button>
