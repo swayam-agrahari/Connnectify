@@ -20,15 +20,29 @@ export async function getFullPost(postId: string, userId: string) {
         },
     });
     const post = await posrRes.json().then((data) => data.post);
-    console.log("Fetched post:", post);
 
     // Fetch author
-    const authorRes = await axios.get(`${process.env.NEXT_PUBLIC_USER_SERVICE}/api/auth/${post.authorId}`);
-    const author = authorRes.data.user;
+    // const authorRes = await axios.get(`${process.env.NEXT_PUBLIC_USER_SERVICE}/api/auth/${post.authorId}`);
+    const authorRes = await fetch(`${process.env.NEXT_PUBLIC_USER_SERVICE}/api/auth/${post.authorId}/details`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "Cookie": `session=${tokenCookie.value}`
+        },
+    }).then(res => res.json());
+    console.log("Fetched author:", authorRes);
+    const author = authorRes.user;
 
     // Fetch comments
-    const commentsRes = await axios.get(`${process.env.NEXT_PUBLIC_POST_SERVICE}/api/posts/${postId}/comments`);
-    const comments = commentsRes.data.comments;
+    // const commentsRes = await axios.get(`${process.env.NEXT_PUBLIC_POST_SERVICE}/api/posts/${postId}/comments`);
+    const commentsRes = await fetch(`${process.env.NEXT_PUBLIC_POST_SERVICE}/api/posts/${postId}/comments`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "Cookie": `session=${tokenCookie.value}`
+        },
+    }).then(res => res.json());
+    const comments = commentsRes.comments;
 
     const authorIds = [...new Set(comments.map((c: any) => c.authorId))];
     const usersRes = await axios.post(`${process.env.NEXT_PUBLIC_USER_SERVICE}/api/auth/bulk`, { ids: authorIds });
